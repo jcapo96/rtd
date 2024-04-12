@@ -1,0 +1,100 @@
+{"LARTGRAD":
+    {"sets":{
+        "first_round":{
+            "LArTGrad-1":{"CalibSetNumber":"LArTGrad-1", "Type":"Cal", "Selection":"GOOD"},
+            "LArTGrad-2":{"CalibSetNumber":"LArTGrad-2", "Type":"Cal", "Selection":"GOOD"},
+            "LArTGrad-3":{"CalibSetNumber":"LArTGrad-3", "Type":"Cal", "Selection":"GOOD"},
+            "LArTGrad-4":{"CalibSetNumber":"LArTGrad-4", "Type":"Cal", "Selection":"GOOD"}
+            },
+        "second_round":{"CalibSetNumber":"LArTGrad-2.1", "Type":"Cal", "Selection":"GOOD"}
+        },
+    "ids":{
+        "first_round":{
+            "LArTGrad-1":["39655", "39654",	"39653", "39652", "39651", "39650", "40526", "40525", "40524", "39659", "39658", "39657"],
+            "LArTGrad-2":["39649", "39648", "39647", "39646", "39644", "39630", "39629", "39628", "39627", "39626", "39625", "39624"],
+            "LArTGrad-3":["39623", "39622", "39621", "39620", "39619", "40533",	"40531", "39615", "39614", "39613", "39612", "39642"],
+            "LArTGrad-4":["39610", "39609", "39608", "39607", "39666", "39665",	"39664", "39667", "39661", "39660", "39611", "39642"]
+            },
+        "second_round":{
+            "LArTGrad-2.1":["39610", "39666", "39661", "39622", "40533", "39613", "39647", "39629", "39625", "39652", "40525", "39657"]
+            }
+    },
+    "raised_sensors":{
+        "LArTGrad-1":["39652", "40525", "39657"],
+        "LArTGrad-2":["39647", "39629", "39625"],
+        "LArTGrad-3":["39622", "40533", "39613"],
+        "LArTGrad-4":["39610", "39666", "39661"]
+        },
+    "absolute_references":["44123", "44124"]
+    },
+
+    "LN22TGRAD":
+    {"sets":{
+        "first_round":{
+            "TGrad-1":{"CalibSetNumber":"TGrad-1", "Type":"Cal", "Selection":"GOOD", "Use":"FIRST_RUN"},
+            "TGrad-2":{"CalibSetNumber":"TGrad-2", "Type":"Cal", "Selection":"GOOD", "Use":"FIRST_RUN"},
+            "TGrad-3":{"CalibSetNumber":"TGrad-3", "Type":"Cal", "Selection":"GOOD", "Use":"FIRST_RUN"},
+            "TGrad-4":{"CalibSetNumber":"TGrad-4", "Type":"Cal", "Selection":"GOOD", "Use":"FIRST_RUN"}
+            },
+        "second_round":{"CalibSetNumber":"TGrad-2.1", "Type":"Cal", "Use":"FIRST_RUN"}
+        },
+    "ids":{
+        "first_round":{
+            "TGrad-1":["39655", "39654", "39653", "39652", "39651", "39650", "40526", "40525", "40524", "39659", "39658", "39657"],
+            "TGrad-2":["39649", "39648", "39647", "39646", "39644", "39630", "39629", "39628", "39627", "39626", "39625", "39624"],
+            "TGrad-3":["39623", "39622", "39621", "39620", "39619", "40533", "40531", "39615", "39614", "39613", "39612", "39611"],
+            "TGrad-4":["39610", "39609", "39608", "39607", "39666", "39665", "39664", "39667", "39661", "39660", "9999", "9998"]
+            },
+        "second_round":{
+            "TGrad-2.1":["39610", "39666", "39661", "39622", "40533", "39613", "39647", "39629", "39625", "39652", "40525", "39657"]
+            }
+    },
+    "raised_sensors":{
+        "TGrad-1":["39652", "40525", "39657"],
+        "TGrad-2":["39647", "39629", "39625"],
+        "TGrad-3":["39622", "40533", "39613"],
+        "TGrad-4":["39610", "39666", "39661"]
+        },
+    "absolute_references":["44123", "44124"]
+    },
+
+    "LN23TGRAD":
+    {"sets":{
+        "first_round":{
+            "TGrad-1":{"CalibSetNumber":"TGrad-1", "Type":"Cal", "Selection":"GOOD", "Use":"SECOND_RUN"},
+            "TGrad-2":{"CalibSetNumber":"TGrad-2", "Type":"Cal", "Selection":"GOOD", "Use":"SECOND_RUN"},
+            "TGrad-3":{"CalibSetNumber":"TGrad-3", "Type":"Cal", "Selection":"GOOD", "Use":"SECOND_RUN"},
+            "TGrad-4":{"CalibSetNumber":"TGrad-4", "Type":"Cal", "Selection":"GOOD", "Use":"SECOND_RUN"}
+            },
+        "second_round":{"CalibSetNumber":"TGrad-2.1", "Type":"Cal", "Use":"SECOND_RUN"}
+        },
+    "ids":{
+        "first_round":{
+            "TGrad-1":["39655", "39654", "39653", "39652", "39651", "39650", "40526", "40525", "40524", "39659", "39658", "39657"],
+            "TGrad-2":["39649", "39648", "39647", "39646", "39644", "39630", "39629", "39628", "39627", "39626", "39625", "39624"],
+            "TGrad-3":["39623", "39622", "39621", "39620", "39619", "40533", "40531", "39615", "39614", "39613", "39612", "39611"],
+            "TGrad-4":["39610", "39609", "39608", "39607", "39666", "39665", "39664", "39667", "39661", "39660", "40529", "40530"]
+            },
+        "second_round":{
+            "TGrad-2.1":["39610", "39666", "39661", "39622", "40533", "39613", "39647", "39629", "39625", "39652", "40525", "39657"]
+            }
+    },
+    "raised_sensors":{
+        "TGrad-1":["39652", "40525", "39657"],
+        "TGrad-2":["39647", "39629", "39625"],
+        "TGrad-3":["39622", "40533", "39613"],
+        "TGrad-4":["39610", "39666", "39661"]
+        },
+    "absolute_references":["44123", "44124"]
+    },
+
+"PIPE":
+    {"sets":[
+        {"CalibSetNumber":"Pipe-1", "Type":"Cal", "Selection":"GOOD"},
+        {"CalibSetNumber":"Pipe-TGrad-1", "Type":"Cal", "Selection":"GOOD"},
+        {"CalibSetNumber":"Pipe-2", "Type":"Cal", "Selection":"GOOD"}
+        ],
+    "absolute_references":["44123", "44124"]
+    }
+
+}
