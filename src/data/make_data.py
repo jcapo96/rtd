@@ -8,9 +8,10 @@ class MakeData():
     def __init__(self, detector=None, system=None, sensors=None,
                  startDay=None, endDay=None, startTime=None, endTime=None,
                  clockTick=60,
-                 FROM_CERN=True, ref="40525") -> None:
+                 FROM_CERN=True, ref="40525",
+                 pathToSaveData="/eos/user/j/jcapotor/PDHDdata/") -> None:
 
-        self.pathToSaveData = "/eos/user/j/jcapotor/PDHDdata/"
+        self.pathToSaveData = pathToSaveData
         self.pathToCalibData = "/eos/user/j/jcapotor/RTDdata/calib/"
 
         self.detector = detector

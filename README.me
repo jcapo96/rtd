@@ -1,0 +1,11 @@
+To setup the environment run:
+
+$ pip install -r .requirements.txt
+
+To collect data from certain system of set of sensors, create an instance of the class MakeData() by importing it:
+
+from rtd.src.data.make_data import MakeData
+m = MakeData(pathToSaveData="/your/path/to/save/data/", detector="np04", system="apa", startDay="2024-03-05", endDay="2024-04-12", startTime="00:00:00", endTime="15:30:00", clockTick=60,)
+m.make()
+
+One can set different arguments to MakeData(), but essentials are pathToSaveData, detector, system or sensors, and startDay.
