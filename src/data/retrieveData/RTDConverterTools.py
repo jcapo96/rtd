@@ -4,23 +4,11 @@ from datetime import datetime, timedelta
 def convertDDMMYYYY(date, time):
     datetime_str = f"{date} {time}"
     datetime_obj = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
-    epochTime = int(datetime_obj.timestamp())
+    epochTime = datetime_obj.timestamp() + 3600
+    changeDate = datetime.strptime(f"{date.split('-')[0]}-03-31 02:00:00", "%Y-%m-%d %H:%M:%S")
+    if epochTime > changeDate.timestamp():
+        epochTime += 3600
     return epochTime
-
-def prepareTimeStamp(startDate, endDate):
-    try:
-        startDate = datetime.strptime(startDate, "%d-%m-%Y")
-        endDate   = datetime.strptime(endDate, "%d-%m-%Y")
-    except:
-        try:
-            startDate = datetime.strptime(startDate, "%Y-%m-%d")
-            endDate   = datetime.strptime(endDate, "%Y-%m-%d")
-        except Exception as e:
-            raise(e)
-    # if endDate == startDate:
-    #     endDate += timedelta(days=1)
-    return startDate, endDate
-
 
 def checkFileExists(outputRootFileName):
     """
