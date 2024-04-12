@@ -1,4 +1,4 @@
-import ROOT, os, array, subprocess
+import ROOT, os, array, tqdm, json
 from rtd.src.data.retrieveData import RTDConverterTools
 from rtd.src.data.retrieveData import access
 import pandas as pd
@@ -25,12 +25,11 @@ class MakeData():
 
         self.FROM_CERN = FROM_CERN
 
-        self.CALIB = CALIB
-        self.calibFileName = "LARTGRAD_TREE"
         self.ref = ref
         self.loadSlowControlWebMapping()
         self.selectSensors()
         self.makeFileName()
+        self.makeCalibFileName()
 
     def loadSlowControlWebMapping(self):
         """
@@ -73,6 +72,17 @@ class MakeData():
                 self.outputRootFileName = f"{self.pathToSaveData}{self.detector}_{self.system}_{self.startDay}T{self.startTime}_{self.endDay}T{self.endTime}_ctick{self.clockTick}s_web.root"
         return self
 
+    def makeCalibFileName(self):
+        if self.system is not None:
+            if "TGRAD" in self.system.upper():
+                self.CALIB = True
+                self.calibFileName = ["LARTGRAD_TREE"]
+        elif self.system is None:
+            systems = self.selection["SYSTEM"].unique()
+            for system in systems:
+                if "TGRAD" in system:
+                    self.calibFileName.append("LARTGRAD_TREE")
+
     def make(self):
         tempTreeName = "temp"
         outputFile = ROOT.TFile(f"{self.outputRootFileName}", "RECREATE")
@@ -93,31 +103,85 @@ class MakeData():
         outputTree.Branch("name", name, "name/I")
         outputTree.Branch("id", id, "id/I")
 
-        for nrow, row in self.selection.iterrows():
-            acc = access.Access(detector=self.detector, elementId=row["DCS-ID"], startDay=self.startDay, endDay=self.endDay, startTime=self.startTime, endTime=self.endTime, FROM_CERN=self.FROM_CERN)
-            try:
-                y[0] = float(row["Y"])
-                name[0] = int(row["SC-ID"].split("TE")[1])
-                id[0] = int(row["CAL-ID"])
-            except:
-                y[0] = float(-999)
-                name[0] = int(999)
-                id[0] = int(999)
-            for ntick, tick in enumerate(self.ticks):
-                clockData = acc.data.loc[(acc.data["epochTime"] >= tick) & (acc.data["epochTime"] < tick+self.clockTick)]
-                # print(clockData)
-                if len(clockData) == 0:
-                    epochTime[ntick] = tick
-                    temp[ntick] = -999
-                    etemp[ntick] = -999
-                else:
-                    epochTime[ntick] = tick
-                    temp[ntick] = acc.data["temp"].mean()
-                    etemp[ntick] = acc.data["temp"].std()
-            outputTree.Fill()
+        with tqdm.tqdm(total=len(self.selection)) as pbar:
+            for nrow, row in self.selection.iterrows():
+                print(f"\n... Filling {row['SC-ID']} ...")
+                acc = access.Access(detector=self.detector, elementId=row["DCS-ID"], startDay=self.startDay, endDay=self.endDay, startTime=self.startTime, endTime=self.endTime, FROM_CERN=self.FROM_CERN)
+                try:
+                    y[0] = float(row["Y"])
+                    name[0] = int(row["SC-ID"].split("TE")[1])
+                    id[0] = int(row["CAL-ID"])
+                except:
+                    y[0] = float(-999)
+                    name[0] = int(999)
+                    id[0] = int(999)
+                with tqdm.tqdm(total=len(self.ticks)) as pbar2:
+                    for ntick, tick in enumerate(self.ticks):
+                        clockData = acc.data.loc[(acc.data["epochTime"] >= tick) & (acc.data["epochTime"] < tick+self.clockTick)]
+                        # print(clockData)
+                        if len(clockData) == 0:
+                            epochTime[ntick] = tick
+                            temp[ntick] = -999
+                            etemp[ntick] = -999
+                        else:
+                            epochTime[ntick] = tick
+                            temp[ntick] = acc.data["temp"].mean()
+                            etemp[ntick] = acc.data["temp"].std()
+                        pbar2.update(1)
+                outputTree.Fill()
+                pbar.update(1)
 
         outputTree.Write()
         outputFile.Close()
 
+        if self.CALIB is True:
+            for calibFileName in self.calibFileName:
+                with open(f"{self.pathToCalibData}{calibFileName}.json") as f:
+                    data = json.load(f)[self.ref]
+
+                outputFile = ROOT.TFile(f"{self.outputRootFileName}", "UPDATE")
+                outputTree = ROOT.TTree(f"{calibFileName}", f"Calibration constants from {calibFileName.split('.')[0]}")
+
+                values_to_fill, branches_to_fill = {}, {}
+                for id, values in data.items():
+                    values_to_fill[id] = array.array("d", [0.0])
+                    branches_to_fill[id] = outputTree.Branch(f"cal{id}", values_to_fill[id], f"cal{id}/D")
+
+                for i in range(9): #this is not general enough
+                    for id, values in data.items():
+                        if len(values) > 1:
+                            values_to_fill[id][0] = values[i]
+                        else:
+                            values_to_fill[id][0] = values[0]
+                    outputTree.Fill()
+
+                outputFile.cd()
+                outputTree.Write()
+                outputFile.Close()
+
+        if self.RCALIB is True:
+            for calibFileName in self.calibFileName:
+                with open(f"{self.pathToCalibData}{calibFileName}_rcal.json") as f:
+                    data = json.load(f)[self.ref]
+
+                outputFile = ROOT.TFile(f"{self.outputRootFileName}", "UPDATE")
+                outputTree = ROOT.TTree(f"r{calibFileName}", f"Calibration constants from {calibFileName.split('.')[0]}_rcal")
+
+                values_to_fill, branches_to_fill = {}, {}
+                for id, values in data.items():
+                    values_to_fill[id] = array.array("d", [0.0])
+                    branches_to_fill[id] = outputTree.Branch(f"cal{id}", values_to_fill[id], f"cal{id}/D")
+
+                for i in range(9): #this is not general enough
+                    for id, values in data.items():
+                        if len(values) > 1:
+                            values_to_fill[id][0] = values[i]
+                        else:
+                            values_to_fill[id][0] = values[0]
+                    outputTree.Fill()
+
+                outputFile.cd()
+                outputTree.Write()
+                outputFile.Close()
 m = MakeData(detector="np04", system="apa", startDay="2024-03-05", endDay="2024-04-12", startTime="00:00:00", endTime="15:30:00", clockTick=60)
 m.make()

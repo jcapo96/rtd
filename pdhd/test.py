@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 pathToSaveData = "/eos/user/j/jcapotor/PDHDdata/"
 # fileName = "np04_apa_2024-03-05T00:00:00_2024-04-11T22:30:00_ctick60s_cache.root"
-fileName = "np04_TGrad_2024-03-11T00:00:01_2024-03-11T00:10:00_ctick60s_cache.root"
+fileName = "np04_apa_2024-03-05T00:00:00_2024-04-12T15:30:00_ctick60s_cache.root"
 
 outputRootFileName = f"{pathToSaveData}{fileName}"
 
@@ -12,11 +12,13 @@ outputFile = ROOT.TFile(f"{outputRootFileName}", "READ")
 # print(outputFile.Map())
 data = outputFile.Get("temp")
 
-for branch in data.GetListOfBranches():
-    print(branch.GetName())
-
+plt.figure(figsize=(10, 5))
 for entry in data:
-    print(entry.name)
+    temp, time = np.array(entry.temp), np.array(entry.t)
+    plt.plot(time, temp, ".", label=f"{entry.name}")
+
+plt.legend(ncol=4)
+plt.savefig("test.png")
 
 outputFile.Close()
 # cal = outputFile.Get("calib")
