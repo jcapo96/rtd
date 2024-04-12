@@ -15,9 +15,11 @@ data = outputFile.Get("temp")
 plt.figure(figsize=(10, 5))
 for entry in data:
     temp, time = np.array(entry.temp), np.array(entry.t)
+    print(temp)
     plt.plot(time, temp, ".", label=f"{entry.name}")
 
 plt.legend(ncol=4)
+plt.ylim(0,200)
 plt.savefig("test.png")
 
 outputFile.Close()

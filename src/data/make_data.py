@@ -8,7 +8,7 @@ class MakeData():
     def __init__(self, detector=None, system=None, sensors=None,
                  startDay=None, endDay=None, startTime=None, endTime=None,
                  clockTick=60,
-                 FROM_CERN=True, CALIB=False, ref="40525") -> None:
+                 FROM_CERN=True, ref="40525") -> None:
 
         self.pathToSaveData = "/eos/user/j/jcapotor/PDHDdata/"
         self.pathToCalibData = "/eos/user/j/jcapotor/RTDdata/calib/"
@@ -28,8 +28,8 @@ class MakeData():
         self.ref = ref
         self.loadSlowControlWebMapping()
         self.selectSensors()
-        self.makeFileName()
         self.makeCalibFileName()
+        self.makeFileName()
 
     def loadSlowControlWebMapping(self):
         """
@@ -75,20 +75,26 @@ class MakeData():
     def makeCalibFileName(self):
         if self.system is not None:
             if "TGRAD" in self.system.upper():
-                self.CALIB = True
+                self.CALIB, self.RCALIB = True, True
                 self.calibFileName = ["LARTGRAD_TREE"]
+            else:
+                self.CALIB, self.RCALIB = False, False
         elif self.system is None:
             systems = self.selection["SYSTEM"].unique()
             for system in systems:
                 if "TGRAD" in system:
+                    self.CALIB, self.RCALIB = True, True
                     self.calibFileName.append("LARTGRAD_TREE")
-
+                else:
+                    self.CALIB, self.RCALIB = False, False
+        return self
     def make(self):
         tempTreeName = "temp"
         outputFile = ROOT.TFile(f"{self.outputRootFileName}", "RECREATE")
         outputTree = ROOT.TTree(tempTreeName, "Temperature measured by RTDs")
         length = len(self.ticks)
         epochTime = array.array("d", [0.0] * length)
+        eepochTime = array.array("d", [0.0] * length)
         temp = array.array("d", [0.0] * length)
         etemp = array.array("d", [0.0] * length)
         y = array.array("d", [0.0])
@@ -97,15 +103,15 @@ class MakeData():
         id = array.array("i", [0])
 
         outputTree.Branch("t", epochTime, f"t[{length}]/D")
+        outputTree.Branch("et", eepochTime, f"et[{length}]/D")
         outputTree.Branch("temp", temp, f"temp[{length}]/D")
         outputTree.Branch("etemp", etemp, f"etemp[{length}]/D")
         outputTree.Branch("y", y, "y/D")
         outputTree.Branch("name", name, "name/I")
         outputTree.Branch("id", id, "id/I")
 
-        with tqdm.tqdm(total=len(self.selection)) as pbar:
+        with tqdm.tqdm(total=len(self.selection)*len(self.ticks)) as pbar:
             for nrow, row in self.selection.iterrows():
-                print(f"\n... Filling {row['SC-ID']} ...")
                 acc = access.Access(detector=self.detector, elementId=row["DCS-ID"], startDay=self.startDay, endDay=self.endDay, startTime=self.startTime, endTime=self.endTime, FROM_CERN=self.FROM_CERN)
                 try:
                     y[0] = float(row["Y"])
@@ -115,21 +121,21 @@ class MakeData():
                     y[0] = float(-999)
                     name[0] = int(999)
                     id[0] = int(999)
-                with tqdm.tqdm(total=len(self.ticks)) as pbar2:
-                    for ntick, tick in enumerate(self.ticks):
-                        clockData = acc.data.loc[(acc.data["epochTime"] >= tick) & (acc.data["epochTime"] < tick+self.clockTick)]
-                        # print(clockData)
-                        if len(clockData) == 0:
-                            epochTime[ntick] = tick
-                            temp[ntick] = -999
-                            etemp[ntick] = -999
-                        else:
-                            epochTime[ntick] = tick
-                            temp[ntick] = acc.data["temp"].mean()
-                            etemp[ntick] = acc.data["temp"].std()
-                        pbar2.update(1)
+                for ntick, tick in enumerate(self.ticks):
+                    clockData = acc.data.loc[(acc.data["epochTime"] >= tick) & (acc.data["epochTime"] < tick+self.clockTick)]
+                    # print(clockData)
+                    if len(clockData) == 0:
+                        epochTime[ntick] = tick
+                        eepochTime[ntick] = -999
+                        temp[ntick] = -999
+                        etemp[ntick] = -999
+                    else:
+                        epochTime[ntick] = tick
+                        eepochTime[ntick] = self.clockTick/2
+                        temp[ntick] = clockData["temp"].mean()
+                        etemp[ntick] = clockData["temp"].std()
+                    pbar.update(1)
                 outputTree.Fill()
-                pbar.update(1)
 
         outputTree.Write()
         outputFile.Close()
@@ -183,5 +189,6 @@ class MakeData():
                 outputFile.cd()
                 outputTree.Write()
                 outputFile.Close()
+
 m = MakeData(detector="np04", system="apa", startDay="2024-03-05", endDay="2024-04-12", startTime="00:00:00", endTime="15:30:00", clockTick=60)
 m.make()
