@@ -1,9 +1,7 @@
 import os, ROOT
 from datetime import datetime, timedelta
 
-def convertDDMMYYYY(date, time):
-    datetime_str = f"{date} {time}"
-    datetime_obj = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M:%S")
+def convertDDMMYYYY(datetime_obj):
     epochTime = datetime_obj.timestamp() + 3600
     changeDate = datetime.strptime(f"{date.split('-')[0]}-03-31 02:00:00", "%Y-%m-%d %H:%M:%S")
     if epochTime > changeDate.timestamp():

@@ -2,24 +2,33 @@ import ROOT, array
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+
 pathToSaveData = "/eos/user/j/jcapotor/PDHDdata/"
 # fileName = "np04_apa_2024-03-05T00:00:00_2024-04-11T22:30:00_ctick60s_cache.root"
-fileName = "np04_apa_2024-03-05T00:00:00_2024-04-12T15:30:00_ctick60s_cache.root"
+fileName = "np04_tgrad_2024-04-10T00:00:00_2024-04-12T19:55:00_ctick10_LARTGRAD_TREER40525cache.root"
 
 outputRootFileName = f"{pathToSaveData}{fileName}"
 
 outputFile = ROOT.TFile(f"{outputRootFileName}", "READ")
 # print(outputFile.Map())
 data = outputFile.Get("temp")
+cal = outputFile.Get("LARTGRAD_TREE")
+rcal = outputFile.Get("rLARTGRAD_TREE")
 
 plt.figure(figsize=(10, 5))
 for entry in data:
+    if entry.id == 99999 or entry.id == 40530 or entry.id == 40529:
+        continue
+    c = getattr(rcal, f"cal{entry.id}")
+    print(c)
     temp, time = np.array(entry.temp), np.array(entry.t)
-    print(temp)
-    plt.plot(time, temp, ".", label=f"{entry.name}")
+    df = pd.DataFrame({'temp': temp, 't': time}).astype("float")
+    df = df.loc[(df["temp"] > 0)&(df["temp"] < 88)].reset_index(drop=True)
+    if len(df) == 0:
+        continue
+    plt.plot(df["t"].values, df["temp"].values, label=entry.name)
 
-plt.legend(ncol=4)
-plt.ylim(0,200)
+plt.legend(ncol=3)
 plt.savefig("test.png")
 
 outputFile.Close()

@@ -1,11 +1,11 @@
 import ROOT, os, array, tqdm, json
-from rtd.src.data.retrieveData import RTDConverterTools
+from datetime import datetime, timedelta
 from rtd.src.data.retrieveData import access
 import pandas as pd
 import numpy as np
 
 class MakeData():
-    def __init__(self, detector=None, system=None, sensors=None,
+    def __init__(self, detector=None, system=None, sensors=None, all=False,
                  startDay=None, endDay=None, startTime=None, endTime=None,
                  clockTick=60,
                  FROM_CERN=True, ref="40525",
@@ -17,12 +17,12 @@ class MakeData():
         self.detector = detector
         self.system = system
         self.sensors = sensors
+        self.all = all
         self.startDay = startDay
         self.endDay = endDay
         self.startTime = startTime
         self.endTime = endTime
         self.clockTick = clockTick
-        self.makeClock()
 
         self.FROM_CERN = FROM_CERN
 
@@ -31,6 +31,7 @@ class MakeData():
         self.selectSensors()
         self.makeCalibFileName()
         self.makeFileName()
+        self.makeClock()
 
     def loadSlowControlWebMapping(self):
         """
@@ -45,39 +46,64 @@ class MakeData():
         return self
 
     def makeClock(self):
-        startTimeStamp = RTDConverterTools.convertDDMMYYYY(self.startDay, self.startTime)
-        endTimeStamp = RTDConverterTools.convertDDMMYYYY(self.endDay, self.endTime)
-        self.ticks = np.arange(startTimeStamp, endTimeStamp+1, self.clockTick) #have to add +1 to endDate because of python syntax
+        changeDate = datetime.strptime(f"{self.startDay.split('-')[0]}-03-31 02:00:00", "%Y-%m-%d %H:%M:%S").timestamp()
+        if (self.startDay is not None) and (self.endDay is not None):
+            startDatetime = datetime.strptime(f"{self.startDay} {self.startTime}", "%Y-%m-%d %H:%M:%S").timestamp() + 60*60
+            endDatetime = datetime.strptime(f"{self.endDay} {self.endTime}", "%Y-%m-%d %H:%M:%S").timestamp() + 60*60
+        elif (self.startDay is not None) and (self.startTime is None) and (self.endDay is None):
+            self.startTime = "00:00:00"
+            startDatetime = datetime.strptime(f"{self.startDay} {self.startTime}", "%Y-%m-%d %H:%M:%S").timestamp() + 60*60
+            endDatetime = datetime.strptime(f"{self.startDay} {self.startTime}", "%Y-%m-%d %H:%M:%S").timestamp() + 60*60 + 60*60*24
+        if startDatetime > changeDate:
+            startDatetime += 60*60
+        if endDatetime > changeDate:
+            endDatetime += 60*60
+        self.ticks = np.arange(startDatetime, endDatetime+1, self.clockTick) #have to add +1 to endDate because of python syntax
         return self
 
     def selectSensors(self):
-        if (self.system is not None) and (self.sensors is None):
-            self.selection = self.mapping.loc[(self.mapping["SYSTEM"] == self.system.upper())]
-        elif (self.system is None) and (self.sensors is not None):
-            self.selection = self.mapping[self.mapping["SC-ID"].isin(self.sensors)]
-        else:
-            self.selection = self.mapping.loc[(self.mapping["SYSTEM"] == self.system.upper())]
-            self.selection = self.selection[self.selection["SC-ID"].isin(self.sensors)]
+        if self.all == False:
+            if (self.system is not None) and (self.sensors is None):
+                self.selection = self.mapping.loc[(self.mapping["SYSTEM"] == self.system.upper())]
+            elif (self.system is None) and (self.sensors is not None):
+                self.selection = self.mapping[self.mapping["SC-ID"].isin(self.sensors)]
+            else:
+                self.selection = self.mapping.loc[(self.mapping["SYSTEM"] == self.system.upper())]
+                self.selection = self.selection[self.selection["SC-ID"].isin(self.sensors)]
+        elif self.all == True:
+            self.selection = self.mapping
         return self.selection.reset_index(drop=True)
 
     def makeFileName(self):
-        if self.CALIB is True:
-            if self.FROM_CERN is True:
-                self.outputRootFileName = f"{self.pathToSaveData}{self.detector}_{self.system}_{self.startDay}T{self.startTime}_{self.endDay}T{self.endTime}_ctick{self.clockTick}_{self.calibFileName.split('.')[0]}R{self.ref}cache.root"
-            elif self.FROM_CERN is False:
-                self.outputRootFileName = f"{self.pathToSaveData}{self.detector}_{self.system}_{self.startDay}T{self.startTime}_{self.endDay}T{self.endTime}_ctick{self.clockTick}_{self.calibFileName.split('.')[0]}R{self.ref}web.root"
-        elif self.CALIB is False:
-            if self.FROM_CERN is True:
-                self.outputRootFileName = f"{self.pathToSaveData}{self.detector}_{self.system}_{self.startDay}T{self.startTime}_{self.endDay}T{self.endTime}_ctick{self.clockTick}s_cache.root"
-            elif self.FROM_CERN is False:
-                self.outputRootFileName = f"{self.pathToSaveData}{self.detector}_{self.system}_{self.startDay}T{self.startTime}_{self.endDay}T{self.endTime}_ctick{self.clockTick}s_web.root"
+        if (self.startDay is not None) and (self.endDay is not None) and (self.startTime is not None) and (self.endTime is not None):
+            if self.CALIB is True:
+                if self.FROM_CERN is True:
+                    self.outputRootFileName = f"{self.pathToSaveData}{self.detector}_{self.system}_{self.startDay}T{self.startTime}_{self.endDay}T{self.endTime}_ctick{self.clockTick}_{self.calibFileName.split('.')[0]}R{self.ref}cache.root"
+                elif self.FROM_CERN is False:
+                    self.outputRootFileName = f"{self.pathToSaveData}{self.detector}_{self.system}_{self.startDay}T{self.startTime}_{self.endDay}T{self.endTime}_ctick{self.clockTick}_{self.calibFileName.split('.')[0]}R{self.ref}web.root"
+            elif self.CALIB is False:
+                if self.FROM_CERN is True:
+                    self.outputRootFileName = f"{self.pathToSaveData}{self.detector}_{self.system}_{self.startDay}T{self.startTime}_{self.endDay}T{self.endTime}_ctick{self.clockTick}s_cache.root"
+                elif self.FROM_CERN is False:
+                    self.outputRootFileName = f"{self.pathToSaveData}{self.detector}_{self.system}_{self.startDay}T{self.startTime}_{self.endDay}T{self.endTime}_ctick{self.clockTick}s_web.root"
+        elif (self.startDay is not None) and (self.endDay is None) and (self.startTime is None) and (self.endTime is None):
+            if self.CALIB is True:
+                if self.FROM_CERN is True:
+                    self.outputRootFileName = f"{self.pathToSaveData}{self.detector}_{self.system}_{self.startDay}_ctick{self.clockTick}_{self.calibFileName.split('.')[0]}R{self.ref}cache.root"
+                elif self.FROM_CERN is False:
+                    self.outputRootFileName = f"{self.pathToSaveData}{self.detector}_{self.system}_{self.startDay}_ctick{self.clockTick}_{self.calibFileName.split('.')[0]}R{self.ref}web.root"
+            elif self.CALIB is False:
+                if self.FROM_CERN is True:
+                    self.outputRootFileName = f"{self.pathToSaveData}{self.detector}_{self.system}_{self.startDay}_ctick{self.clockTick}s_cache.root"
+                elif self.FROM_CERN is False:
+                    self.outputRootFileName = f"{self.pathToSaveData}{self.detector}_{self.system}_{self.startDay}_ctick{self.clockTick}s_web.root"
         return self
 
     def makeCalibFileName(self):
         if self.system is not None:
             if "TGRAD" in self.system.upper():
                 self.CALIB, self.RCALIB = True, True
-                self.calibFileName = ["LARTGRAD_TREE"]
+                self.calibFileName = "LARTGRAD_TREE"
             else:
                 self.CALIB, self.RCALIB = False, False
         elif self.system is None:
@@ -85,7 +111,7 @@ class MakeData():
             for system in systems:
                 if "TGRAD" in system:
                     self.CALIB, self.RCALIB = True, True
-                    self.calibFileName.append("LARTGRAD_TREE")
+                    self.calibFileName = "LARTGRAD_TREE"
                 else:
                     self.CALIB, self.RCALIB = False, False
         return self
@@ -124,7 +150,6 @@ class MakeData():
                     id[0] = int(999)
                 for ntick, tick in enumerate(self.ticks):
                     clockData = acc.data.loc[(acc.data["epochTime"] >= tick) & (acc.data["epochTime"] < tick+self.clockTick)]
-                    # print(clockData)
                     if len(clockData) == 0:
                         epochTime[ntick] = tick
                         eepochTime[ntick] = -999
@@ -142,54 +167,64 @@ class MakeData():
         outputFile.Close()
 
         if self.CALIB is True:
-            for calibFileName in self.calibFileName:
-                with open(f"{self.pathToCalibData}{calibFileName}.json") as f:
-                    data = json.load(f)[self.ref]
+            calibFileName = self.calibFileName
+            with open(f"{self.pathToCalibData}{calibFileName}.json") as f:
+                data = json.load(f)[self.ref]
 
-                outputFile = ROOT.TFile(f"{self.outputRootFileName}", "UPDATE")
-                outputTree = ROOT.TTree(f"{calibFileName}", f"Calibration constants from {calibFileName.split('.')[0]}")
+            outputFile = ROOT.TFile(f"{self.outputRootFileName}", "UPDATE")
+            outputTree = ROOT.TTree(f"{calibFileName}", f"Calibration constants from {calibFileName.split('.')[0]}")
 
-                values_to_fill, branches_to_fill = {}, {}
+            values_to_fill, branches_to_fill = {}, {}
+            for id, values in data.items():
+                values_to_fill[id] = array.array("d", [0.0])
+                branches_to_fill[id] = outputTree.Branch(f"cal{id}", values_to_fill[id], f"cal{id}/D")
+
+            for i in range(9): #this is not general enough
                 for id, values in data.items():
-                    values_to_fill[id] = array.array("d", [0.0])
-                    branches_to_fill[id] = outputTree.Branch(f"cal{id}", values_to_fill[id], f"cal{id}/D")
+                    if len(values) > 1:
+                        values_to_fill[id][0] = values[i]
+                    else:
+                        values_to_fill[id][0] = values[0]
+                outputTree.Fill()
 
-                for i in range(9): #this is not general enough
-                    for id, values in data.items():
-                        if len(values) > 1:
-                            values_to_fill[id][0] = values[i]
-                        else:
-                            values_to_fill[id][0] = values[0]
-                    outputTree.Fill()
-
-                outputFile.cd()
-                outputTree.Write()
-                outputFile.Close()
+            outputFile.cd()
+            outputTree.Write()
+            outputFile.Close()
 
         if self.RCALIB is True:
-            for calibFileName in self.calibFileName:
-                with open(f"{self.pathToCalibData}{calibFileName}_rcal.json") as f:
-                    data = json.load(f)[self.ref]
+            calibFileName = self.calibFileName
+            with open(f"{self.pathToCalibData}{calibFileName}_rcal.json") as f:
+                data = json.load(f)[self.ref]
 
-                outputFile = ROOT.TFile(f"{self.outputRootFileName}", "UPDATE")
-                outputTree = ROOT.TTree(f"r{calibFileName}", f"Calibration constants from {calibFileName.split('.')[0]}_rcal")
+            outputFile = ROOT.TFile(f"{self.outputRootFileName}", "UPDATE")
+            outputTree = ROOT.TTree(f"r{calibFileName}", f"Calibration constants from {calibFileName.split('.')[0]}_rcal")
 
-                values_to_fill, branches_to_fill = {}, {}
+            values_to_fill, branches_to_fill = {}, {}
+            for id, values in data.items():
+                values_to_fill[id] = array.array("d", [0.0])
+                branches_to_fill[id] = outputTree.Branch(f"cal{id}", values_to_fill[id], f"cal{id}/D")
+
+            for i in range(9): #this is not general enough
                 for id, values in data.items():
-                    values_to_fill[id] = array.array("d", [0.0])
-                    branches_to_fill[id] = outputTree.Branch(f"cal{id}", values_to_fill[id], f"cal{id}/D")
+                    if len(values) > 1:
+                        values_to_fill[id][0] = values[i]
+                    else:
+                        values_to_fill[id][0] = values[0]
+                outputTree.Fill()
 
-                for i in range(9): #this is not general enough
-                    for id, values in data.items():
-                        if len(values) > 1:
-                            values_to_fill[id][0] = values[i]
-                        else:
-                            values_to_fill[id][0] = values[0]
-                    outputTree.Fill()
+            outputFile.cd()
+            outputTree.Write()
+            outputFile.Close()
 
-                outputFile.cd()
-                outputTree.Write()
-                outputFile.Close()
-
-m = MakeData(detector="np04", system="apa", startDay="2024-03-05", endDay="2024-04-12", startTime="00:00:00", endTime="15:30:00", clockTick=60)
-m.make()
+days = np.arange(1, 32, 1)
+months = ["03", "04"]
+for month in months:
+    for day in days:
+        if month == "04" and day > 11:
+            continue
+        if len(str(day)) == 1:
+            date = f"2024-{month}-0{day}"
+        else:
+            date = f"2024-{month}-{day}"
+        m = MakeData(detector="np04", system="tgrad", all=True, startDay=date, clockTick=10, pathToSaveData="/eos/user/j/jcapotor/PDHDdata/all/")
+        m.make()
