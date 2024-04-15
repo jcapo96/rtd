@@ -7,8 +7,8 @@ readouts = ["ific"]
 # system = system.System(system_name="lartgrad")
 # system.save()
 
-readout = makeRCalib.ReadoutCalib(readout="ific")
-readout.save()
+# readout = makeRCalib.ReadoutCalib(readout="ific")
+# readout.save()
 
 readout = makeRCalib.ReadoutCalib(readout="cern")
 readout.save()

@@ -12,6 +12,7 @@ class ReadoutCalib():
         self.results = None
         self.resultsErr = None
         self.channels = None
+        self.container = {}
 
     def makeIFIC(self, date):
         tini = 30
