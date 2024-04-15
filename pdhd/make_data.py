@@ -11,5 +11,5 @@ for month in months:
             date = f"2024-{month}-0{day}"
         else:
             date = f"2024-{month}-{day}"
-        m = MakeData(detector="np04", all=False, system="apa", startDay=date, clockTick=10, pathToSaveData="/eos/user/j/jcapotor/PDHDdata/apa/")
+        m = MakeData(detector="np04", all=False, system="tgrad", startDay=date, clockTick=60, pathToSaveData="/eos/user/j/jcapotor/PDHDdata/tgrad/")
         m.make()
