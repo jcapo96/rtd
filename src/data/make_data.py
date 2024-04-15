@@ -276,9 +276,9 @@ class MakeData():
             values_to_fill[name] = array.array("d", [0.0])
             branches_to_fill[name] = outputTree.Branch(f"cal{name}", values_to_fill[name], f"cal{name}/D")
 
-        for id, value in data.items():
+        for id, values in data.items():
             name = f"{id.split('s')[1]}"
-            values_to_fill[name][0] = value[0]
+            values_to_fill[name][0] = np.mean(values)
         outputTree.Fill()
 
         outputFile.cd()
