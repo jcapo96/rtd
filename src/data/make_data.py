@@ -207,15 +207,23 @@ class MakeData():
 
             values_to_fill, branches_to_fill = {}, {}
             for id, values in data.items():
-                values_to_fill[id] = array.array("d", [0.0])
-                branches_to_fill[id] = outputTree.Branch(f"cal{id}", values_to_fill[id], f"cal{id}/D")
+                try:
+                    name = int(self.mapping.loc[(self.mapping["CAL-ID"] == int(id))]["SC-ID"].values[0].split("TE")[1])
+                except:
+                    name = int(id)
+                values_to_fill[name] = array.array("d", [0.0])
+                branches_to_fill[name] = outputTree.Branch(f"cal{name}", values_to_fill[name], f"cal{name}/D")
 
             for i in range(9): #this is not general enough
                 for id, values in data.items():
+                    try:
+                        name = int(self.mapping.loc[(self.mapping["CAL-ID"] == int(id))]["SC-ID"].values[0].split("TE")[1])
+                    except:
+                        name = int(id)
                     if len(values) > 1:
-                        values_to_fill[id][0] = values[i]
+                        values_to_fill[name][0] = values[i]
                     else:
-                        values_to_fill[id][0] = values[0]
+                        values_to_fill[name][0] = values[0]
                 outputTree.Fill()
 
             outputFile.cd()
@@ -232,17 +240,47 @@ class MakeData():
 
             values_to_fill, branches_to_fill = {}, {}
             for id, values in data.items():
-                values_to_fill[id] = array.array("d", [0.0])
-                branches_to_fill[id] = outputTree.Branch(f"cal{id}", values_to_fill[id], f"cal{id}/D")
+                try:
+                    name = int(self.mapping.loc[(self.mapping["CAL-ID"] == int(id))]["SC-ID"].values[0].split("TE")[1])
+                except:
+                    name = int(id)
+                values_to_fill[name] = array.array("d", [0.0])
+                branches_to_fill[name] = outputTree.Branch(f"cal{name}", values_to_fill[name], f"cal{name}/D")
 
             for i in range(9): #this is not general enough
                 for id, values in data.items():
+                    try:
+                        name = int(self.mapping.loc[(self.mapping["CAL-ID"] == int(id))]["SC-ID"].values[0].split("TE")[1])
+                    except:
+                        name = int(id)
                     if len(values) > 1:
-                        values_to_fill[id][0] = values[i]
+                        values_to_fill[name][0] = values[i]
                     else:
-                        values_to_fill[id][0] = values[0]
+                        values_to_fill[name][0] = values[0]
                 outputTree.Fill()
 
             outputFile.cd()
             outputTree.Write()
             outputFile.Close()
+
+        calibFileName = "CERNRCalib"
+        with open(f"{self.pathToCalibData}{calibFileName}.json") as f:
+            data = json.load(f)
+
+        outputFile = ROOT.TFile(f"{self.outputRootFileName}", "UPDATE")
+        outputTree = ROOT.TTree(f"r{calibFileName}", f"Calibration constants from {calibFileName.split('.')[0]}_rcal")
+
+        values_to_fill, branches_to_fill = {}, {}
+        for id, values in data.items():
+            name = f"{id.split('s')[1]}"
+            values_to_fill[name] = array.array("d", [0.0])
+            branches_to_fill[name] = outputTree.Branch(f"cal{name}", values_to_fill[name], f"cal{name}/D")
+
+        for id, value in data.items():
+            name = f"{id.split('s')[1]}"
+            values_to_fill[name][0] = value[0]
+        outputTree.Fill()
+
+        outputFile.cd()
+        outputTree.Write()
+        outputFile.Close()
