@@ -121,13 +121,7 @@ class MakeData():
                 else:
                     self.CALIB, self.RCALIB = False, False
             elif self.system is None:
-                systems = self.selection["SYSTEM"].unique()
-                for system in systems:
-                    if "TGRAD" in system:
-                        self.CALIB, self.RCALIB = True, True
-                        self.calibFileName = "LARTGRAD_TREE"
-                    else:
-                        self.CALIB, self.RCALIB = False, False
+                self.CALIB, self.RCALIB = False, False
         elif self.all is True:
             self.CALIB, self.RCALIB = True, True
             self.calibFileName = "LARTGRAD_TREE"
@@ -138,47 +132,54 @@ class MakeData():
         infoTreeName = "info"
         outputFile = ROOT.TFile(f"{self.outputRootFileName}", "RECREATE")
         outputTree = ROOT.TTree(tempTreeName, "Temperature measured by RTDs")
-        outputInfo = ROOT.TTree(infoTreeName, "Information about the sensors")
         nsensors = len(self.selection)
         epochTime = np.array([0.0 for _ in range(nsensors)])
         eepochTime = np.array([0.0 for _ in range(nsensors)])
         temp = np.array([0.0 for _ in range(nsensors)])
         etemp = np.array([0.0 for _ in range(nsensors)])
 
-        y = array.array("d", [0.0])
-        name = array.array("i", [0])
-        id = array.array("i", [0])
+        y = array.array("d", [0.0]*nsensors)
+        name = array.array("i", [0]*nsensors)
+        id = array.array("i", [0]*nsensors)
 
         outputTree.Branch("t", epochTime, f"t[{nsensors}]/D")
         outputTree.Branch("et", eepochTime, f"et[{nsensors}]/D")
         outputTree.Branch("temp", temp, f"temp[{nsensors}]/D")
         outputTree.Branch("etemp", etemp, f"etemp[{nsensors}]/D")
 
-        outputInfo.Branch("y", y, f"y/D")
-        outputInfo.Branch("name", name, f"name/I")
-        outputInfo.Branch("id", id, f"id/I")
+        outputTree.Branch("y", y, f"y[{nsensors}]/D")
+        outputTree.Branch("name", name, f"name[{nsensors}]/I")
+        outputTree.Branch("id", id, f"id[{nsensors}]/I")
 
         container = {}
         for index, row in self.selection.iterrows():
-            container[row["SC-ID"]] = access.Access(detector=self.detector, elementId=row["DCS-ID"],
-                                                           startDay=self.startDay, endDay=self.endDay, startTime=self.startTime, endTime=self.endTime,
-                                                           FROM_CERN=self.FROM_CERN)
             try:
-                y[0] = float(row["Y"])
-                name[0] = int(row["SC-ID"].split("TE")[1])
-                id[0] = int(row["CAL-ID"])
+                container[row["SC-ID"]] = {
+                                            "access":access.Access(detector=self.detector, elementId=row["DCS-ID"],
+                                                            startDay=self.startDay, endDay=self.endDay, startTime=self.startTime, endTime=self.endTime,
+                                                            FROM_CERN=self.FROM_CERN),
+                                            "Y":float(row["Y"]),
+                                            "name":int(row["SC-ID"].split("TE")[1]),
+                                            "id":int(row["CAL-ID"])
+                                        }
             except:
-                y[0] = float(-999)
-                name[0] = int(999)
-                id[0] = int(999)
-
-            outputInfo.Fill()
-
+                container[row["SC-ID"]] = {
+                                            "access":access.Access(detector=self.detector, elementId=row["DCS-ID"],
+                                                            startDay=self.startDay, endDay=self.endDay, startTime=self.startTime, endTime=self.endTime,
+                                                            FROM_CERN=self.FROM_CERN),
+                                            "Y":-999,
+                                            "name":int(999),
+                                            "id":int(999)
+                                        }
 
         with tqdm.tqdm(total=len(self.selection)*len(self.ticks)) as pbar:
             for ntick, tick in enumerate(self.ticks):
                 for index, key in enumerate(container.keys()):
-                    clockData = container[key].data.loc[(container[key].data["epochTime"] >= tick) & (container[key].data["epochTime"] < tick+self.clockTick)]
+                    clockData = container[key]["access"].data.loc[(container[key]["access"].data["epochTime"] >= tick) & (container[key]["access"].data["epochTime"] < tick+self.clockTick)]
+                    y[index] = container[key]["Y"]
+                    name[index] = container[key]["name"]
+                    id[index] = container[key]["id"]
+
                     if len(clockData) == 0:
                         epochTime[index] = tick
                         eepochTime[index] = -999
@@ -193,7 +194,6 @@ class MakeData():
 
                 outputTree.Fill()
 
-        outputInfo.Write()
         outputTree.Write()
         outputFile.Close()
 
