@@ -100,46 +100,46 @@ class TreeMethod:
                     first_round_ref.compute_calconst(ref=ref)
                     # Iterate over calibration sets and sensor IDs from the first round
                     for calset_sens, sensors in self.info["ids"]["first_round"].items():
-                        if calset_sens == calset_ref:
-                            # Use calibration constants of the first round reference for the same calibration set
-                            for id in sensors:
-                                self.calresults[ref][id] = [first_round_ref.calconst[id]]
-                                self.calerrors[ref][id] = [first_round_ref.calerr[id]]
+                        # if calset_sens == calset_ref:
+                        #     # Use calibration constants of the first round reference for the same calibration set
+                        #     for id in sensors:
+                        #         self.calresults[ref][id] = [first_round_ref.calconst[id]]
+                        #         self.calerrors[ref][id] = [first_round_ref.calerr[id]]
 
-                                self.rcalresults[ref][id] = [first_round_ref.rcalconst[id]]
-                        elif calset_sens != calset_ref:
+                        #         self.rcalresults[ref][id] = [first_round_ref.rcalconst[id]]
+                        # elif calset_sens != calset_ref:
                             # Create a Selection instance for the first round sensors in a different calibration set
-                            first_round_sens = Selection(log_file=log_file, **self.info["sets"]["first_round"][calset_sens])
-                            # Iterate over raised sensors in the current calibration set
-                            for raised_sens in self.info["raised_sensors"][calset_sens]:
-                                # Compute calibration constants for the raised sensors
-                                first_round_sens.compute_calconst(ref=raised_sens)
-                                # Iterate over raised reference sensors in the reference calibration set
-                                for raised_ref in self.info["raised_sensors"][calset_ref]:
-                                    # Compute calibration constants for the second round sensors
-                                    second_round_sens.compute_calconst(ref=raised_ref)
-                                    # Iterate over sensor IDs from the current calibration set
-                                    for id in sensors:
-                                        # Calculate offsets and errors for the current sensor ID
-                                        off3, off3_err = first_round_sens.calconst[id], first_round_sens.calerr[id]
-                                        off2, off2_err = second_round_sens.calconst[raised_sens], second_round_sens.calerr[raised_sens]
-                                        off1, off1_err = first_round_ref.calconst[raised_ref], first_round_ref.calerr[raised_ref]
+                        first_round_sens = Selection(log_file=log_file, **self.info["sets"]["first_round"][calset_sens])
+                        # Iterate over raised sensors in the current calibration set
+                        for raised_sens in self.info["raised_sensors"][calset_sens]:
+                            # Compute calibration constants for the raised sensors
+                            first_round_sens.compute_calconst(ref=raised_sens)
+                            # Iterate over raised reference sensors in the reference calibration set
+                            for raised_ref in self.info["raised_sensors"][calset_ref]:
+                                # Compute calibration constants for the second round sensors
+                                second_round_sens.compute_calconst(ref=raised_ref)
+                                # Iterate over sensor IDs from the current calibration set
+                                for id in sensors:
+                                    # Calculate offsets and errors for the current sensor ID
+                                    off3, off3_err = first_round_sens.calconst[id], first_round_sens.calerr[id]
+                                    off2, off2_err = second_round_sens.calconst[raised_sens], second_round_sens.calerr[raised_sens]
+                                    off1, off1_err = first_round_ref.calconst[raised_ref], first_round_ref.calerr[raised_ref]
 
-                                        roff3 = first_round_sens.rcalconst[id]
-                                        roff2 = second_round_sens.rcalconst[raised_sens]
-                                        roff1 = first_round_ref.rcalconst[raised_ref]
-                                        if id not in self.calresults[ref]:
-                                            # Initialize calibration results and errors for the current sensor ID
-                                            self.calresults[ref][id] = [off1 + off2 + off3]
-                                            self.calerrors[ref][id] = [np.sqrt(off1_err**2 + off2_err**2 + off3_err**2)]
+                                    roff3 = first_round_sens.rcalconst[id]
+                                    roff2 = second_round_sens.rcalconst[raised_sens]
+                                    roff1 = first_round_ref.rcalconst[raised_ref]
+                                    if id not in self.calresults[ref]:
+                                        # Initialize calibration results and errors for the current sensor ID
+                                        self.calresults[ref][id] = [off1 + off2 + off3]
+                                        self.calerrors[ref][id] = [np.sqrt(off1_err**2 + off2_err**2 + off3_err**2)]
 
-                                            self.rcalresults[ref][id] = [roff1 + roff2 + roff3]
-                                        else:
-                                            # Update calibration results and errors for the current sensor ID
-                                            self.calresults[ref][id].append(off1 + off2 + off3)
-                                            self.calerrors[ref][id].append(np.sqrt(off1_err**2 + off2_err**2 + off3_err**2))
+                                        self.rcalresults[ref][id] = [roff1 + roff2 + roff3]
+                                    else:
+                                        # Update calibration results and errors for the current sensor ID
+                                        self.calresults[ref][id].append(off1 + off2 + off3)
+                                        self.calerrors[ref][id].append(np.sqrt(off1_err**2 + off2_err**2 + off3_err**2))
 
-                                            self.rcalresults[ref][id].append(roff1 + roff2 + roff3)
+                                        self.rcalresults[ref][id].append(roff1 + roff2 + roff3)
                     pbar.update(1)
 
         return self

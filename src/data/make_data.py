@@ -178,7 +178,8 @@ class MakeData():
 
         with tqdm.tqdm(total=len(self.selection)*len(self.ticks)) as pbar:
             for ntick, tick in enumerate(self.ticks):
-                for index, key in enumerate(container.keys()):
+                for idx, key in enumerate(container.keys()):
+                    index = int(key.split("TE")[1]) - 1
                     clockData = container[key]["access"].data.loc[(container[key]["access"].data["epochTime"] >= tick) & (container[key]["access"].data["epochTime"] < tick+self.clockTick)]
                     y[index] = container[key]["Y"]
                     name[index] = container[key]["name"]
@@ -203,7 +204,6 @@ class MakeData():
 
         if self.CALIB is True:
             for calibFileName in self.calibFileName:
-                calibFileName = self.calibFileName
                 with open(f"{self.pathToCalibData}{calibFileName}.json") as f:
                     data = json.load(f)[self.ref]
 
@@ -237,7 +237,6 @@ class MakeData():
 
         if self.RCALIB is True:
             for calibFileName in self.calibFileName:
-                calibFileName = self.calibFileName
                 with open(f"{self.pathToCalibData}{calibFileName}_rcal.json") as f:
                     data = json.load(f)[self.ref]
 
