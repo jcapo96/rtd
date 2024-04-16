@@ -41,8 +41,12 @@ class MakeData():
             self: The RTDConverter instance.
         """
         path = os.path.dirname(os.path.abspath(__file__))
-        self.mapping = pd.read_csv(f"{path}/mapping/pdhd_mapping.csv",
-                           sep=";", decimal=",", header=0)
+        if int(self.startDay.split("-")[0]) > 2023:
+            self.mapping = pd.read_csv(f"{path}/mapping/pdhd_mapping.csv",
+                            sep=";", decimal=",", header=0)
+        elif int(self.startDay.split("-")[0]) < 2023:
+            self.mapping = pd.read_csv(f"{path}/mapping/pdsp_mapping.csv",
+                                       sep=";", decimal=".", header=0)
         return self
 
     def makeClock(self):
@@ -102,7 +106,7 @@ class MakeData():
         self.outputRootFileName += f"ctick{self.clockTick}_"
 
         if self.CALIB is True:
-            self.outputRootFileName += f"calib_{self.calibFileName.split('.')[0]}"
+            self.outputRootFileName += f"calib_"
             self.outputRootFileName += f"R{self.ref}"
 
         if self.FROM_CERN is True:
@@ -117,14 +121,14 @@ class MakeData():
             if self.system is not None:
                 if "TGRAD" in self.system.upper():
                     self.CALIB, self.RCALIB = True, True
-                    self.calibFileName = "LARTGRAD_TREE"
+                    self.calibFileName = ["LARTGRAD_TREE", "LN22TGRAD_TREE", "LN23TGRAD_TREE"]
                 else:
                     self.CALIB, self.RCALIB = False, False
             elif self.system is None:
                 self.CALIB, self.RCALIB = False, False
         elif self.all is True:
             self.CALIB, self.RCALIB = True, True
-            self.calibFileName = "LARTGRAD_TREE"
+            self.calibFileName = ["LARTGRAD_TREE", "LN22TGRAD_TREE", "LN23TGRAD_TREE"]
 
         return self
     def make(self):
@@ -198,70 +202,72 @@ class MakeData():
         outputFile.Close()
 
         if self.CALIB is True:
-            calibFileName = self.calibFileName
-            with open(f"{self.pathToCalibData}{calibFileName}.json") as f:
-                data = json.load(f)[self.ref]
+            for calibFileName in self.calibFileName:
+                calibFileName = self.calibFileName
+                with open(f"{self.pathToCalibData}{calibFileName}.json") as f:
+                    data = json.load(f)[self.ref]
 
-            outputFile = ROOT.TFile(f"{self.outputRootFileName}", "UPDATE")
-            outputTree = ROOT.TTree(f"{calibFileName}", f"Calibration constants from {calibFileName.split('.')[0]}")
+                outputFile = ROOT.TFile(f"{self.outputRootFileName}", "UPDATE")
+                outputTree = ROOT.TTree(f"{calibFileName}", f"Calibration constants from {calibFileName.split('.')[0]}")
 
-            values_to_fill, branches_to_fill = {}, {}
-            for id, values in data.items():
-                try:
-                    name = int(self.mapping.loc[(self.mapping["CAL-ID"] == int(id))]["SC-ID"].values[0].split("TE")[1])
-                except:
-                    name = int(id)
-                values_to_fill[name] = array.array("d", [0.0])
-                branches_to_fill[name] = outputTree.Branch(f"cal{name}", values_to_fill[name], f"cal{name}/D")
-
-            for i in range(9): #this is not general enough
+                values_to_fill, branches_to_fill = {}, {}
                 for id, values in data.items():
                     try:
                         name = int(self.mapping.loc[(self.mapping["CAL-ID"] == int(id))]["SC-ID"].values[0].split("TE")[1])
                     except:
                         name = int(id)
-                    if len(values) > 1:
-                        values_to_fill[name][0] = values[i]
-                    else:
-                        values_to_fill[name][0] = values[0]
-                outputTree.Fill()
+                    values_to_fill[name] = array.array("d", [0.0])
+                    branches_to_fill[name] = outputTree.Branch(f"cal{name}", values_to_fill[name], f"cal{name}/D")
 
-            outputFile.cd()
-            outputTree.Write()
-            outputFile.Close()
+                for i in range(9): #this is not general enough
+                    for id, values in data.items():
+                        try:
+                            name = int(self.mapping.loc[(self.mapping["CAL-ID"] == int(id))]["SC-ID"].values[0].split("TE")[1])
+                        except:
+                            name = int(id)
+                        if len(values) > 1:
+                            values_to_fill[name][0] = values[i]
+                        else:
+                            values_to_fill[name][0] = values[0]
+                    outputTree.Fill()
+
+                outputFile.cd()
+                outputTree.Write()
+                outputFile.Close()
 
         if self.RCALIB is True:
-            calibFileName = self.calibFileName
-            with open(f"{self.pathToCalibData}{calibFileName}_rcal.json") as f:
-                data = json.load(f)[self.ref]
+            for calibFileName in self.calibFileName:
+                calibFileName = self.calibFileName
+                with open(f"{self.pathToCalibData}{calibFileName}_rcal.json") as f:
+                    data = json.load(f)[self.ref]
 
-            outputFile = ROOT.TFile(f"{self.outputRootFileName}", "UPDATE")
-            outputTree = ROOT.TTree(f"r{calibFileName}", f"Calibration constants from {calibFileName.split('.')[0]}_rcal")
+                outputFile = ROOT.TFile(f"{self.outputRootFileName}", "UPDATE")
+                outputTree = ROOT.TTree(f"r{calibFileName}", f"Calibration constants from {calibFileName.split('.')[0]}_rcal")
 
-            values_to_fill, branches_to_fill = {}, {}
-            for id, values in data.items():
-                try:
-                    name = int(self.mapping.loc[(self.mapping["CAL-ID"] == int(id))]["SC-ID"].values[0].split("TE")[1])
-                except:
-                    name = int(id)
-                values_to_fill[name] = array.array("d", [0.0])
-                branches_to_fill[name] = outputTree.Branch(f"cal{name}", values_to_fill[name], f"cal{name}/D")
-
-            for i in range(9): #this is not general enough
+                values_to_fill, branches_to_fill = {}, {}
                 for id, values in data.items():
                     try:
                         name = int(self.mapping.loc[(self.mapping["CAL-ID"] == int(id))]["SC-ID"].values[0].split("TE")[1])
                     except:
                         name = int(id)
-                    if len(values) > 1:
-                        values_to_fill[name][0] = values[i]
-                    else:
-                        values_to_fill[name][0] = values[0]
-                outputTree.Fill()
+                    values_to_fill[name] = array.array("d", [0.0])
+                    branches_to_fill[name] = outputTree.Branch(f"cal{name}", values_to_fill[name], f"cal{name}/D")
 
-            outputFile.cd()
-            outputTree.Write()
-            outputFile.Close()
+                for i in range(9): #this is not general enough
+                    for id, values in data.items():
+                        try:
+                            name = int(self.mapping.loc[(self.mapping["CAL-ID"] == int(id))]["SC-ID"].values[0].split("TE")[1])
+                        except:
+                            name = int(id)
+                        if len(values) > 1:
+                            values_to_fill[name][0] = values[i]
+                        else:
+                            values_to_fill[name][0] = values[0]
+                    outputTree.Fill()
+
+                outputFile.cd()
+                outputTree.Write()
+                outputFile.Close()
 
         calibFileName = "CERNRCalib"
         with open(f"{self.pathToCalibData}{calibFileName}.json") as f:
@@ -284,3 +290,47 @@ class MakeData():
         outputFile.cd()
         outputTree.Write()
         outputFile.Close()
+
+        if self.CALIB is True:
+            calibFileName = "LAR2018TGRAD"
+            data = pd.read_csv(f"{self.pathToCalibData}{calibFileName}.csv",
+                                        sep=";", decimal=".", header=0, na_values=[None, "", "NA", "NaN", "N/A"])
+
+            outputFile = ROOT.TFile(f"{self.outputRootFileName}", "UPDATE")
+            outputTreeRef = ROOT.TTree(f"{calibFileName}_REF", f"Calibration constants from {calibFileName} reference")
+            outputTreeTree = ROOT.TTree(f"{calibFileName}_TREE", f"Calibration constants from {calibFileName} tree method")
+            outputTreePoff = ROOT.TTree(f"{calibFileName}_POFF", f"Calibration constants from {calibFileName} pumps off method")
+
+            values_to_fill_ref, branches_to_fill_ref = {}, {}
+            values_to_fill_tree, branches_to_fill_tree = {}, {}
+            values_to_fill_poff, branches_to_fill_poff = {}, {}
+            for index, row in data.iterrows():
+                if pd.isna(row["OFF"]):
+                    continue
+                name = f'{int(row["SC-ID"].split("TE")[1])}'
+                values_to_fill_tree[name] = array.array("d", [0.0])
+                branches_to_fill_tree[name] = outputTreeTree.Branch(f"cal{name}", values_to_fill_tree[name], f"cal{name}/D")
+
+                values_to_fill_ref[name] = array.array("d", [0.0])
+                branches_to_fill_ref[name] = outputTreeRef.Branch(f"cal{name}", values_to_fill_ref[name], f"cal{name}/D")
+
+                values_to_fill_poff[name] = array.array("d", [0.0])
+                branches_to_fill_poff[name] = outputTreePoff.Branch(f"cal{name}", values_to_fill_poff[name], f"cal{name}/D")
+
+            for index, row in data.iterrows():
+                if pd.isna(row["OFF"]):
+                    continue
+                name = f'{int(row["SC-ID"].split("TE")[1])}'
+                values_to_fill_ref[name][0] = float(row["OFF"])*1e3
+                values_to_fill_tree[name][0] = float(row["OFF_TREE"])*1e3
+                values_to_fill_poff[name][0] = float(row["POFF"])*1e3
+
+            outputTreeRef.Fill()
+            outputTreeTree.Fill()
+            outputTreePoff.Fill()
+
+            outputFile.cd()
+            outputTreeRef.Write()
+            outputTreeTree.Write()
+            outputTreePoff.Write()
+            outputFile.Close()

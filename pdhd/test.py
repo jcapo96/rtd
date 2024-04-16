@@ -1,93 +1,61 @@
-import ROOT, array
+import ROOT
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-pathToSaveData = "/eos/user/j/jcapotor/PDHDdata/"
-# fileName = "np04_apa_2024-03-05T00:00:00_2024-04-11T22:30:00_ctick60s_cache.root"
-fileName = "np04_tgrad_2024-04-10T00:00:00_2024-04-12T19:55:00_ctick10_LARTGRAD_TREER40525cache.root"
+pathToSaveData = "/eos/user/j/jcapotor/PDHDdata/tgrad/"
 
-outputRootFileName = f"{pathToSaveData}{fileName}"
+dates = []
+days = np.arange(1, 32, 1)
+months = ["04"]
+for month in months:
+    for day in days:
+        if month == "04" and day > 14:
+            continue
+        if len(str(day)) == 1:
+            date = f"2024-{month}-0{day}"
+        else:
+            date = f"2024-{month}-{day}"
+        dates.append(date)
+df = {}
+time = []
+for date in dates:
+    outputRootFileName = f"{pathToSaveData}np04_tgrad_{date}_ctick60_calib_LARTGRAD_TREER40525cache.root"
+    outputFile = ROOT.TFile(f"{outputRootFileName}", "READ")
+    # print(outputFile.Map())
+    data = outputFile.Get("temp")
+    cal = outputFile.Get("LARTGRAD_TREE")
+    rcal = outputFile.Get("rLARTGRAD_TREE")
+    crcal = outputFile.Get("rCERNRCalib")
 
-outputFile = ROOT.TFile(f"{outputRootFileName}", "READ")
-# print(outputFile.Map())
-data = outputFile.Get("temp")
-cal = outputFile.Get("LARTGRAD_TREE")
-rcal = outputFile.Get("rLARTGRAD_TREE")
+    for entry in data:
+        time.append(entry.t[0])
+        for index in range(len(data.temp)):
+            sensor = index + 1
+            try:
+                cal.GetEntry(0)
+                rcal.GetEntry(0)
+                crcal.GetEntry(0)
+                cc = getattr(cal, f"cal{entry.name[sensor]}")*1e-3
+                rcc = getattr(rcal, f"cal{entry.name[sensor]}")*1e-3
+                crcc = getattr(crcal, f"cal{entry.name[sensor]}")*1e-3
+                if entry.name[index] not in df.keys():
+                    df[sensor] = [entry.temp[index] + cc + rcc + crcc]
+                elif entry.name[index] in df.keys():
+                    df[sensor].append(entry.temp[index] + cc + rcc + crcc)
+            except Exception as e:
+                continue
 
-plt.figure(figsize=(10, 5))
-for entry in data:
-    if entry.id == 99999 or entry.id == 40530 or entry.id == 40529:
-        continue
-    c = getattr(rcal, f"cal{entry.id}")
-    print(c)
-    temp, time = np.array(entry.temp), np.array(entry.t)
-    df = pd.DataFrame({'temp': temp, 't': time}).astype("float")
-    df = df.loc[(df["temp"] > 0)&(df["temp"] < 88)].reset_index(drop=True)
-    if len(df) == 0:
-        continue
-    plt.plot(df["t"].values, df["temp"].values, label=entry.name)
+    outputFile.Close()
 
-plt.legend(ncol=3)
+df = pd.DataFrame.from_dict(df, orient="columns")
+time = np.array(time)
+df["t"] = time
+df = df.loc[(df >= 0).all(axis=1)].sort_values(by="t")
+print(df.columns)
+# df["t"] = np.array(time)
+
+plt.figure()
+plt.plot(df["t"].values, df[46].values)
+plt.plot(df["t"].values, df[47].values)
 plt.savefig("test.png")
-
-outputFile.Close()
-# cal = outputFile.Get("calib")
-# rcal = outputFile.Get("rcalib")
-
-# cc = {}
-# for branch in cal.GetListOfBranches():
-#     branchName = branch.GetName()
-#     for entry in cal:
-#         if branchName not in cc.keys():
-#             cc[branchName.split("cal")[1]] = [getattr(entry, branchName)]
-#         elif branchName in cc.keys():
-#             cc[branchName.split("cal")[1]].append(getattr(entry, branchName))
-
-# rcc = {}
-# for branch in rcal.GetListOfBranches():
-#     branchName = branch.GetName()
-#     for entry in rcal:
-#         if branchName not in rcc.keys():
-#             rcc[branchName.split("cal")[1]] = [getattr(entry, branchName)]
-#         elif branchName in rcal.keys():
-#             rcc[branchName.split("cal")[1]].append(getattr(entry, branchName))
-
-# t, temp = {}, {}
-# for branch in data.GetListOfBranches():
-#     branchName = branch.GetName()
-#     if "T" not in branchName:
-#         continue
-#     id = branchName.split("T")[1]
-#     if id not in cc.keys():
-#         continue
-#     c = cc[id][0]*1e-3
-#     rc = rcc[id][0]*1e-3
-#     for entry in data:
-#         if getattr(entry, branchName) < 0:
-#             continue
-#         if branchName not in temp.keys():
-#             temp[branchName] = [getattr(entry, branchName) - c - rc]
-#             t[branchName] = [getattr(entry, f"t{branchName.split('T')[1]}")]
-#         elif branchName in temp.keys():
-#             temp[branchName].append(getattr(entry, branchName) - c - rc)
-#             t[branchName].append(getattr(entry, f"t{branchName.split('T')[1]}"))
-
-# plt.figure(figsize=(10,6))
-# results, heights, errors = {}, {}, {}
-# mapping = pd.read_csv("/afs/cern.ch/user/j/jcapotor/software/rtd/src/data/mapping/pdhd_mapping.csv", sep=";", decimal=",", header=0).astype("str")
-# for key, values in temp.items():
-#     if np.mean(values) > 88:
-#         continue
-#     height = mapping.loc[(mapping["CAL-ID"]==key.split("T")[1])]["Y"]
-#     results[key] = np.mean(values[-10000:])
-#     heights[key] = float(height)
-#     errors[key] = np.std(values[-10000:])
-
-# plt.errorbar(results.values(), heights.values(), xerr=3e-3, fmt=".", capsize=6)
-# plt.title("TGrad temperatures")
-# plt.ylabel("Height (m)")
-# plt.xlabel("Temperature (K)")
-# plt.legend(ncol=4)
-# plt.savefig("test.png")
-# outputFile.Close()
