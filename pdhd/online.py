@@ -1,3 +1,6 @@
+import sys, os
+current_directory = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, current_directory)
 from src.data.make_data import MakeData
 from datetime import datetime, timedelta
 import time, json
@@ -30,7 +33,7 @@ except:
     print(f"Ask access to Jordi Capó (jcapo@ific.uv.es) to data and change in line 14 on rtd/pdhd/online.py -> pathToCalib='path/to/your/calib/data' ")
     caldata, rcaldata, crcaldata = None, None, None
 
-mapping = pd.read_csv(f"src/data/mapping/pdhd_mapping.csv",
+mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
                             sep=";", decimal=",", header=0)
 
 while True:
@@ -76,4 +79,4 @@ while True:
     plt.xlabel("Height (m)")
     plt.ylabel("Temperature (K)")
     plt.ylim(87.45, 87.51)
-    plt.savefig("onlinePlots/tgrad.png")
+    plt.savefig(f"{current_directory}/onlinePlots/tgrad.png")
