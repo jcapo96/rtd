@@ -1,6 +1,8 @@
 import sys, os
 current_directory = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, current_directory)
+if current_directory not in sys.path:
+    sys.path.insert(0, current_directory)
+
 from src.data.make_data import MakeData
 from datetime import datetime, timedelta
 import time, json
@@ -29,7 +31,7 @@ try:
         crcaldata = json.load(f)
 except:
     print(f"You don't have the access rights to the calibration data: /eos/user/j/jcapotor/RTDdata/calib")
-    print(f"Your data will not be corrected")
+    print(f"Your data will not be corrected, but STILL DISPLAYED in rtd/onlinePlots")
     print(f"Ask access to Jordi Capó (jcapo@ific.uv.es) to data and change in line 14 on rtd/pdhd/online.py -> pathToCalib='path/to/your/calib/data' ")
     caldata, rcaldata, crcaldata = None, None, None
 
