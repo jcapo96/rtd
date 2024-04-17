@@ -78,6 +78,5 @@ while True:
     # plt.ylim(min(temp)-max(etemp), max(temp)+max(etemp))
     plt.xlabel("Height (m)")
     plt.ylabel("Temperature (K)")
-    plt.ylim(87.45, 87.51)
+    plt.ylim(min(temp) - max(etemp), max(temp) + max(etemp))
     plt.savefig(f"{current_directory}/onlinePlots/tgrad.png")
-    plt.show()
