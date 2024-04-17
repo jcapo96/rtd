@@ -25,7 +25,6 @@ with open(f"/eos/user/j/jcapotor/RTDdata/calib/CERNRCalib.json") as f:
 mapping = pd.read_csv(f"/afs/cern.ch/user/j/jcapotor/software/rtd/src/data/mapping/pdhd_mapping.csv",
                             sep=";", decimal=",", header=0)
 
-plt.figure()
 while True:
     today = datetime.now()
     startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()*1e3
@@ -35,6 +34,7 @@ while True:
                     clockTick=60,
                     ref=ref, FROM_CERN=False)
     m.getData()
+    plt.figure()
     y, temp, etemp = [], [], []
     for name, dict in m.container.items():
         id = str(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0])
@@ -54,5 +54,7 @@ while True:
     plt.errorbar(y, temp, yerr=etemp, fmt="o", capsize=10)
     plt.title(f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
     # plt.ylim(min(temp)-max(etemp), max(temp)+max(etemp))
+    plt.xlabel("Height (m)")
+    plt.ylabel("Temperature (K)")
     plt.ylim(87.45, 87.51)
-    plt.savefig("onlinePlots/test.png")
+    plt.savefig("onlinePlots/tgrad.png")
