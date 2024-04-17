@@ -1,6 +1,6 @@
 import ROOT, os, array, tqdm, json
 from datetime import datetime, timedelta
-from rtd.src.data.retrieveData import access
+from src.data.retrieveData import access
 import pandas as pd
 import numpy as np
 

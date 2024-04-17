@@ -1,5 +1,5 @@
-from rtd.src.calib.utils.runFunctions import read_datafile
-from rtd.src.calib.utils.tools.makeRCalib import ReadoutCalib
+from src.calib.utils.runFunctions import read_datafile
+from src.calib.utils.tools.makeRCalib import ReadoutCalib
 import pandas as pd
 
 class Run:

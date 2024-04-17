@@ -1,5 +1,5 @@
-from rtd.src.calib.constructor.selection import Selection
-from rtd.src.calib.utils.logFile import LogFile
+from src.calib.constructor.selection import Selection
+from src.calib.utils.logFile import LogFile
 import numpy as np
 from tqdm import tqdm
 
