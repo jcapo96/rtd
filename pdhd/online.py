@@ -33,6 +33,7 @@ except:
     print(f"You don't have the access rights to the calibration data: /eos/user/j/jcapotor/RTDdata/calib")
     print(f"Your data will not be corrected, but STILL DISPLAYED in rtd/onlinePlots")
     print(f"Ask access to Jordi Capó (jcapo@ific.uv.es) to data and change in line 14 on rtd/pdhd/online.py -> pathToCalib='path/to/your/calib/data' ")
+    print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
     caldata, rcaldata, crcaldata = None, None, None
 
 mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
