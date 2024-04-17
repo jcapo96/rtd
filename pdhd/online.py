@@ -13,16 +13,21 @@ ref = "40525"
 
 integrationTime = 60 #seconds
 
-with open(f"/eos/user/j/jcapotor/RTDdata/calib/LARTGRAD_TREE.json") as f:
-    caldata = json.load(f)[ref]
+try:
+    with open(f"/eos/user/j/jcapotor/RTDdata/calib/LARTGRAD_TREE.json") as f:
+        caldata = json.load(f)[ref]
 
-with open(f"/eos/user/j/jcapotor/RTDdata/calib/LARTGRAD_TREE_rcal.json") as f:
-    rcaldata = json.load(f)[ref]
+    with open(f"/eos/user/j/jcapotor/RTDdata/calib/LARTGRAD_TREE_rcal.json") as f:
+        rcaldata = json.load(f)[ref]
 
-with open(f"/eos/user/j/jcapotor/RTDdata/calib/CERNRCalib.json") as f:
-    crcaldata = json.load(f)
+    with open(f"/eos/user/j/jcapotor/RTDdata/calib/CERNRCalib.json") as f:
+        crcaldata = json.load(f)
+except:
+    print(f"You don't have the access rights to the calibration data: /eos/user/j/jcapotor/RTDdata/calib")
+    print(f"Your data will not be corrected")
+    caldata, rcaldata, crcaldata = None, None, None
 
-mapping = pd.read_csv(f"/afs/cern.ch/user/j/jcapotor/software/rtd/src/data/mapping/pdhd_mapping.csv",
+mapping = pd.read_csv(f"src/data/mapping/pdhd_mapping.csv",
                             sep=";", decimal=",", header=0)
 
 while True:
@@ -38,16 +43,27 @@ while True:
     y, temp, etemp = [], [], []
     for name, dict in m.container.items():
         id = str(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0])
+
         if id not in caldata.keys():
             continue
-        cal = caldata[id][2]*1e-3
-        rcal = rcaldata[id][2]*1e-3
-        crcal = np.mean(crcaldata[f"s{int(name.split('TE')[1])}"])*1e-3
-        if int(name.split("TE")[1]) < 20:
-            continue
-        y.append(dict["Y"])
+        if caldata is not None:
+            cal = caldata[id][2]*1e-3
+        elif caldata is None:
+            cal = 0
+        if rcaldata is not None:
+            rcal = rcaldata[id][2]*1e-3
+        elif rcaldata is None:
+            rcal = 0
+        if crcaldata is not None:
+            crcal = np.mean(crcaldata[f"s{int(name.split('TE')[1])}"])*1e-3
+        elif crcaldata is None:
+            crcal = 0
         df = dict["access"].data
         df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
+        if (df["temp"].mean() - cal - rcal - crcal) > 88:
+            continue
+
+        y.append(dict["Y"])
         temp.append(df["temp"].mean() - cal - rcal - crcal)
         etemp.append(df["temp"].std())
 
