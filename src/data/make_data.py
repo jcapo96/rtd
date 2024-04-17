@@ -27,11 +27,6 @@ class MakeData():
         self.FROM_CERN = FROM_CERN
 
         self.ref = ref
-        self.loadSlowControlWebMapping()
-        self.selectSensors()
-        self.makeCalibFileName()
-        self.makeFileName()
-        self.makeClock()
 
     def loadSlowControlWebMapping(self):
         """
@@ -131,7 +126,38 @@ class MakeData():
             self.calibFileName = ["LARTGRAD_TREE", "LN22TGRAD_TREE", "LN23TGRAD_TREE"]
 
         return self
+
+    def getData(self):
+        self.loadSlowControlWebMapping()
+        self.selectSensors()
+        self.container = {}
+        for index, row in self.selection.iterrows():
+            try:
+                self.container[row["SC-ID"]] = {
+                                            "access":access.Access(detector=self.detector, elementId=row["DCS-ID"],
+                                                            startDay=self.startDay, endDay=self.endDay, startTime=self.startTime, endTime=self.endTime,
+                                                            FROM_CERN=self.FROM_CERN),
+                                            "Y":float(row["Y"]),
+                                            "name":int(row["SC-ID"].split("TE")[1]),
+                                            "id":int(row["CAL-ID"])
+                                        }
+            except:
+                self.container[row["SC-ID"]] = {
+                                            "access":access.Access(detector=self.detector, elementId=row["DCS-ID"],
+                                                            startDay=self.startDay, endDay=self.endDay, startTime=self.startTime, endTime=self.endTime,
+                                                            FROM_CERN=self.FROM_CERN),
+                                            "Y":-999,
+                                            "name":int(999),
+                                            "id":int(999)
+                                        }
+        return self
+
     def make(self):
+        self.loadSlowControlWebMapping()
+        self.selectSensors()
+        self.makeCalibFileName()
+        self.makeFileName()
+        self.makeClock()
         tempTreeName = "temp"
         infoTreeName = "info"
         outputFile = ROOT.TFile(f"{self.outputRootFileName}", "RECREATE")

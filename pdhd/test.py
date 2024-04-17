@@ -23,8 +23,8 @@ for month in months:
 
 plt.figure(figsize=(10,6))
 for i in range(0,9):
-    # if i != 3:
-    #     continue
+    if i != 2:
+        continue
     df = {}
     time = []
     height = {}
@@ -66,7 +66,7 @@ for i in range(0,9):
     df = pd.DataFrame.from_dict(df, orient="columns")
     df = df.loc[(df >= 0).all(axis=1)]
     df = df.loc[:, df.mean() <= 88]
-    # df = df.loc[:, df.mean() >= 87.680]
+    df = df.loc[:, df.mean() >= 87.665]
     height = pd.DataFrame.from_dict(height, orient="columns")
     height = height.filter(items=df.columns)
 

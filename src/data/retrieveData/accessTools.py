@@ -3,7 +3,16 @@ from datetime import timedelta
 import pandas as pd
 from datetime import datetime
 
-def accessViaPage(detector, elementId, startDay, endDay):
+def convert_date_format(date_string):
+    # Split the date string by '-'
+    parts = date_string.split('-')
+
+    # Reorder the parts
+    new_date_string = parts[2] + '-' + parts[1] + '-' + parts[0]
+
+    return new_date_string
+
+def accessViaPage(detector, elementId, startDay, endDay, startTime, endTime):
     """Generates a URL to access data via a web page.
 
     This function generates a URL to access data from the specified detector and element ID
@@ -18,18 +27,25 @@ def accessViaPage(detector, elementId, startDay, endDay):
     Returns:
         str: The URL to access the data via a web page.
     """
-    startDay = datetime.strptime(startDay, "%d-%m-%Y")
-    endDay   = datetime.strptime(endDay, "%d-%m-%Y")
+
+    startDay = convert_date_format(startDay)
+    endDay   = convert_date_format(endDay)
     # Adjust endDay if startDay and endDay are on the same date
-    if startDay.date() == endDay.date():
+    if (startDay == endDay) and (startTime is None or endTime is None):
+        endDay = datetime.strptime(endDay, '%d-%m-%Y')
         endDay += timedelta(days=1)
+        endDay = endDay.strftime('%d-%m-%Y')
 
     # Construct the URL based on the detector
     if detector.lower() == "np04":
         url = 'https://np04-slow-control.web.cern.ch/np04-slow-control/app/php-db-conn/histogramrange.conn.php?'
         url += 'elemId=' + str(elementId)
-        url += '&start=' + startDay.strftime("%d-%m-%Y")
-        url += '&end=' + endDay.strftime("%d-%m-%Y")
+        if (startTime is not None) and (endTime is not None):
+            url += '&start=' + startDay + "T" + startTime
+            url += '&end=' + endDay + "T" + endTime
+        else:
+            url += '&start=' + startDay
+            url += '&end=' + endDay
 
     return url
 
@@ -126,6 +142,11 @@ def getSlowControlData(detector, elementId, startDay, endDay, startTime, endTime
     if FROM_CERN:
         data = accessViaCache(elementId, startDay, endDay, startTime, endTime)
     else:
-        url = accessViaPage(detector, elementId, startDay, endDay)
+        url = accessViaPage(detector, elementId, startDay, endDay, startTime, endTime)
         data = retrieveData(url)
     return data
+
+# data = getSlowControlData(detector="np04", elementId="47890328191258", startDay="2024-04-16", endDay="2024-04-16", startTime="00:00:00", endTime="00:01:00", FROM_CERN=False)
+# data = getSlowControlData(detector="np04", elementId="47890328191258", startDay="2024-04-16", endDay="2024-04-16", startTime=None, endTime=None, FROM_CERN=False)
+# data["epochTime"] = data["epochTime"].apply(lambda x: datetime.utcfromtimestamp(x/1000).strftime('%Y-%m-%d %H:%M:%S'))
+# print(data)

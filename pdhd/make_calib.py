@@ -4,8 +4,9 @@ from rtd.src.calib.utils.tools import makeRCalib
 systems = ["lartgrad", "ln22tgrad", "ln23tgrad"]
 readouts = ["ific", "cern"]
 
-system = system.System(system_name="ln22tgrad")
-system.save()
+for name in systems:
+    s = system.System(system_name=name)
+    s.save()
 
 # readout = makeRCalib.ReadoutCalib(readout="ific")
 # readout.save()
