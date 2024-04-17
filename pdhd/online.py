@@ -15,6 +15,7 @@ allBool = False
 today = datetime.now().strftime('%y-%m-%d')
 path = "/eos/user/j/jcapotor/PDHDdata/"
 ref = "40525"
+FROM_CERN = False
 
 pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
 
@@ -41,12 +42,15 @@ mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
 
 while True:
     today = datetime.now()
-    startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()*1e3
-    endTimeStamp = (today).timestamp()*1e3
+    startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
+    endTimeStamp = (today).timestamp()
+    if FROM_CERN is False:
+        startTimeStamp = startTimeStamp*1e3
+        endTimeStamp = endTimeStamp*1e3
     m = MakeData(detector="np04", all=allBool, system=system,
                     startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
                     clockTick=60,
-                    ref=ref, FROM_CERN=False)
+                    ref=ref, FROM_CERN=FROM_CERN)
     m.getData()
     plt.figure()
     y, temp, etemp = [], [], []
