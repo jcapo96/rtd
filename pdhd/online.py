@@ -80,3 +80,4 @@ while True:
     plt.ylabel("Temperature (K)")
     plt.ylim(87.45, 87.51)
     plt.savefig(f"{current_directory}/onlinePlots/tgrad.png")
+    plt.show()
