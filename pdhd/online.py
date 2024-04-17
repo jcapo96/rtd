@@ -11,20 +11,23 @@ today = datetime.now().strftime('%y-%m-%d')
 path = "/eos/user/j/jcapotor/PDHDdata/"
 ref = "40525"
 
+pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
+
 integrationTime = 60 #seconds
 
 try:
-    with open(f"/eos/user/j/jcapotor/RTDdata/calib/LARTGRAD_TREE.json") as f:
+    with open(f"{pathToCalib}/LARTGRAD_TREE.json") as f:
         caldata = json.load(f)[ref]
 
-    with open(f"/eos/user/j/jcapotor/RTDdata/calib/LARTGRAD_TREE_rcal.json") as f:
+    with open(f"{pathToCalib}/LARTGRAD_TREE_rcal.json") as f:
         rcaldata = json.load(f)[ref]
 
-    with open(f"/eos/user/j/jcapotor/RTDdata/calib/CERNRCalib.json") as f:
+    with open(f"{pathToCalib}/CERNRCalib.json") as f:
         crcaldata = json.load(f)
 except:
     print(f"You don't have the access rights to the calibration data: /eos/user/j/jcapotor/RTDdata/calib")
     print(f"Your data will not be corrected")
+    print(f"Ask access to Jordi Capó (jcapo@ific.uv.es) to data and change in line 14 on rtd/pdhd/online.py -> pathToCalib='path/to/your/calib/data' ")
     caldata, rcaldata, crcaldata = None, None, None
 
 mapping = pd.read_csv(f"src/data/mapping/pdhd_mapping.csv",
