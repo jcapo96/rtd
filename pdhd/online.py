@@ -50,9 +50,9 @@ while True:
     for name, dict in m.container.items():
         id = str(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0])
 
-        if id not in caldata.keys():
-            continue
         if caldata is not None:
+            if id not in caldata.keys():
+                continue
             cal = caldata[id][2]*1e-3
         elif caldata is None:
             cal = 0
