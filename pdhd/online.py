@@ -15,7 +15,7 @@ allBool = False
 today = datetime.now().strftime('%y-%m-%d')
 path = "/eos/user/j/jcapotor/PDHDdata/"
 ref = "40525"
-FROM_CERN = False
+FROM_CERN = True
 
 pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
 
@@ -44,13 +44,17 @@ while True:
     today = datetime.now()
     startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
     endTimeStamp = (today).timestamp()
-    if FROM_CERN is False:
-        startTimeStamp = startTimeStamp*1e3
-        endTimeStamp = endTimeStamp*1e3
-    m = MakeData(detector="np04", all=allBool, system=system,
-                    startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
-                    clockTick=60,
-                    ref=ref, FROM_CERN=FROM_CERN)
+    if FROM_CERN is True:
+        m = MakeData(detector="np04", all=allBool, system=system,
+                        startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
+                        clockTick=60,
+                        ref=ref, FROM_CERN=FROM_CERN)
+    elif FROM_CERN is False:
+        m = MakeData(detector="np04", all=allBool, system=system,
+                        startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        clockTick=60,
+                        ref=ref, FROM_CERN=FROM_CERN)
     m.getData()
     plt.figure()
     y, temp, etemp = [], [], []

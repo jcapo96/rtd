@@ -144,6 +144,7 @@ def getSlowControlData(detector, elementId, startDay, endDay, startTime, endTime
     else:
         url = accessViaPage(detector, elementId, startDay, endDay, startTime, endTime)
         data = retrieveData(url)
+        data["epochTime"] = data["epochTime"].apply(lambda x: x/1e3)
     return data
 
 # data = getSlowControlData(detector="np04", elementId="47890328191258", startDay="2024-04-16", endDay="2024-04-16", startTime="00:00:00", endTime="00:01:00", FROM_CERN=False)
