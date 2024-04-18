@@ -3,6 +3,12 @@ current_directory = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if current_directory not in sys.path:
     sys.path.insert(0, current_directory)
 
+import dash
+from dash import dcc
+from dash import html
+from dash.dependencies import Input, Output
+import plotly.express as px
+
 from src.data.make_data import MakeData
 from datetime import datetime, timedelta
 import time, json
@@ -40,7 +46,23 @@ except:
 mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
                             sep=";", decimal=",", header=0)
 
-while True:
+
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app.layout = html.Div(
+    html.Div([
+        dcc.Interval(
+            id='interval',
+            interval=1000*10, # in milliseconds
+            n_intervals=0
+        ),
+        dcc.Graph('output')
+    ])
+)
+
+@app.callback(Output('output', 'figure'), [Input('interval', 'n_intervals')])
+def update_data(n_intervals):
     today = datetime.now()
     startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
     endTimeStamp = (today).timestamp()
@@ -56,7 +78,6 @@ while True:
                         clockTick=60,
                         ref=ref, FROM_CERN=FROM_CERN)
     m.getData()
-    plt.figure()
     y, temp, etemp = [], [], []
     for name, dict in m.container.items():
         id = str(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0])
@@ -83,11 +104,16 @@ while True:
         y.append(dict["Y"])
         temp.append(df["temp"].mean() - cal - rcal - crcal)
         etemp.append(df["temp"].std())
+    figure = px.scatter(title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
+    figure.add_scatter(x=y, y=temp)
+    return figure
 
-    plt.errorbar(y, temp, yerr=etemp, fmt="o", capsize=10)
-    plt.title(f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
-    # plt.ylim(min(temp)-max(etemp), max(temp)+max(etemp))
-    plt.xlabel("Height (m)")
-    plt.ylabel("Temperature (K)")
-    plt.ylim(min(temp) - max(etemp), max(temp) + max(etemp))
-    plt.savefig(f"{current_directory}/onlinePlots/tgrad.png")
+if __name__ == '__main__':
+    app.run_server(port=4050, debug=True)
+        # plt.errorbar(y, temp, yerr=etemp, fmt="o", capsize=10)
+        # plt.title(f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
+        # # plt.ylim(min(temp)-max(etemp), max(temp)+max(etemp))
+        # plt.xlabel("Height (m)")
+        # plt.ylabel("Temperature (K)")
+        # plt.ylim(min(temp) - max(etemp), max(temp) + max(etemp))
+        # plt.savefig(f"{current_directory}/onlinePlots/tgrad.png")
