@@ -6,7 +6,6 @@ current_directory = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if current_directory not in sys.path:
     sys.path.insert(0, current_directory)
 
-from pages import tgrad
 from dash import Input, Output, State, callback_context
 import plotly.express as px
 from dash import html, dcc
