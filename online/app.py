@@ -8,6 +8,8 @@ if current_directory not in sys.path:
 
 from dash import Input, Output, State, callback_context
 import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from dash import html, dcc, dash_table
 from src.data.make_data import MakeData
 from datetime import datetime, timedelta
@@ -21,7 +23,7 @@ app.config["suppress_callback_exceptions"] = True
 
 empty_data = {'Height (m)': [], 'Temperature (K)': []}
 df_empty = pd.DataFrame(empty_data)
-current_time = "Current Time: "
+current_time = "... Initializing ..."
 
 app.layout = html.Div([
     html.Nav(className='navbar navbar-expand-lg navbar-light bg-light', children=[
@@ -41,7 +43,8 @@ app.layout = html.Div([
                         label="Systems",
                         className="dropdown-menu-pages",
                         children=[
-                            dbc.DropdownMenuItem("Valencia TGradient", href="/pages/tgrad.py"),
+                            dbc.DropdownMenuItem("Valencia TGradient", href="/tgrad"),
+                            dbc.DropdownMenuItem("APA", href="/apa"),
                         ]
                     )
                         ])
@@ -62,8 +65,8 @@ def display_page(pathname):
     if pathname == '/':
         # Return the layout for the home page
         return html.Div([
-            html.H1('Home Page'),
-            html.P(f'{current_time}', id="time"),
+            html.H1('Home Page', style={'text-align': 'center', 'color': 'black', 'font-size': '36px'}),
+            html.P(f'Current time: {current_time}', id="time"),
             dash_table.DataTable(
                 id='table',
                 columns=[{'name': i, 'id': i} for i in df_empty.columns],
@@ -79,18 +82,46 @@ def display_page(pathname):
                     {
                         'if': {'column_id': 'Temperature (K)'},
                         'textAlign': 'center'
+                    },
+                    {
+                        'if': {'column_id': 'Height (m)'},
+                        'textAlign': 'center'
                     }
                 ],
                 style_cell_conditional=[
-                    {'if': {'column_id': 'Height (m)'}, 'width': '30%'},
-                    {'if': {'column_id': 'Temperature (K)'}, 'width': '70%'}
+                    {'if': {'column_id': 'Height (m)'}, 'width': '30%', "textAlign": "center"},
+                    {'if': {'column_id': 'Temperature (K)'}, 'width': '70%', "textAlign": "center"}
                 ]
             ),
-        ], style={'width': '80%', 'margin': 'auto'})  # Adjust the width of the containing div)
-    elif pathname == '/pages/tgrad.py':
+        ], style={'width': '60%', 'margin': 'auto'})  # Adjust the width of the containing div)
+    elif pathname == '/tgrad':
         return html.Div([
-            dcc.Graph(id='tgrad')
-        ])
+            html.H1('Valencia TGradient Monitor', style={'text-align': 'center', 'color': 'black', 'font-size': '36px'}),
+            dcc.Graph(
+                id='tgrad',
+                config={'displayModeBar': False},
+                figure = {
+                    'layout': {
+                        'annotations': [{'text': 'Loading...', 'x': 0.5, 'y': 0.5, 'showarrow': False}],
+                        'title': '... Loading temperature graph ...'
+                    }
+                }
+            ),
+        ]),
+    elif pathname == '/apa':
+        return html.Div([
+            html.H1('Sensors on the APAs', style={'text-align': 'center', 'color': 'black', 'font-size': '36px'}),
+            dcc.Graph(
+                id='apa',
+                config={'displayModeBar': False},
+                figure = {
+                    'layout': {
+                        'annotations': [{'text': 'Loading...', 'x': 0.5, 'y': 0.5, 'showarrow': False}],
+                        'title': '... Loading temperature graph ...'
+                    }
+                }
+            ),
+        ]),
     else:
         # Return a default page or handle other paths
         return html.Div([
@@ -272,6 +303,72 @@ def update_data(n_intervals):
     table_data = [{"Height (m)": y[i], "Temperature (K)": temp[i]} for i in range(len(y))]  # Convert to list of dictionaries
     current_time = today.strftime('%Y-%m-%d %H:%M:%S')
     return table_data, current_time
+
+
+@app.callback(
+    Output('apa', 'figure'),
+    [Input('interval', 'n_intervals')]
+)
+def update_data(n_intervals):
+    system = "apa"
+    allBool = False
+    today = datetime.now().strftime('%y-%m-%d')
+    ref = "40525"
+    FROM_CERN = True
+
+    integrationTime = 60  # seconds
+    mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
+                        sep=";", decimal=",", header=0)
+    today = datetime.now()
+    startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
+    endTimeStamp = today.timestamp()
+    if FROM_CERN is True:
+        m = MakeData(detector="np04", all=allBool, system=system,
+                        startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
+                        clockTick=60,
+                        ref=ref, FROM_CERN=FROM_CERN)
+    elif FROM_CERN is False:
+        m = MakeData(detector="np04", all=allBool, system=system,
+                        startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        clockTick=60,
+                        ref=ref, FROM_CERN=FROM_CERN)
+    m.getData()
+    y, temp, etemp = [[] for i in range(4)], [[] for i in range(4)], [[] for i in range(4)]
+    for name, dict in m.container.items():
+        split = mapping.loc[(mapping["SC-ID"]==name)]["NAME"].values[0].split("APA")
+        apa = f"{split[0]}{split[1][0]}"
+        id = int(split[1][0]) - 1
+        name = split[1][1:]
+        df = dict["access"].data
+        df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
+        y[id].append(name)
+        temp[id].append(df["temp"].mean())
+        etemp[id].append(df["temp"].std())
+    fig = make_subplots(rows=2, cols=2)
+
+    # Add traces to subplots
+    fig.add_trace(go.Scatter(x=y[0], y=temp[0], mode='markers', name=f"APA1"), row=1, col=1)
+    fig.add_trace(go.Scatter(x=y[1], y=temp[1], mode='markers', name=f"APA2"), row=1, col=2)
+    fig.add_trace(go.Scatter(x=y[2], y=temp[2], mode='markers', name=f"APA3"), row=2, col=1)
+    fig.add_trace(go.Scatter(x=y[3], y=temp[3], mode='markers', name=f"APA4"), row=2, col=2)
+
+    # Update layout
+    fig.update_layout(
+        title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}",
+        title_font={
+            "family": "Arial, sans-serif",
+            "size": 20,
+            "color": "black"
+        },
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        title_x=0.5,
+    )
+
+    # Convert subplot to a Plotly figure
+    figure = fig.to_dict()
+    return figure
 
 if __name__ == '__main__':
     app.run_server(debug=True)
