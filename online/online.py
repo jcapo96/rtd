@@ -6,6 +6,7 @@ if current_directory not in sys.path:
 import dash
 from dash import dcc
 from dash import html
+import dash_bootstrap_components as dbc
 from dash.dependencies import Input, Output
 import plotly.express as px
 
@@ -46,22 +47,45 @@ except:
 mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
                             sep=";", decimal=",", header=0)
 
-
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-app.layout = html.Div(
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+app.layout = html.Div([
+    html.Nav(className='navbar navbar-expand-lg navbar-light bg-light', children=[
+        html.Div(className='container', children=[
+            html.A(className='navbar-brand', href='#', children='Temperature Monitoring System - Slow Control'),
+            html.Button(className='navbar-toggler', type='button', **{'data-toggle': 'collapse', 'data-target': '#navbarSupportedContent',
+                               'aria-controls': 'navbarSupportedContent', 'aria-expanded': 'false', 'aria-label': 'Toggle navigation'}, children=[
+                html.Span(className='navbar-toggler-icon')
+            ]),
+            html.Div(className='collapse navbar-collapse', id='navbarSupportedContent', children=[
+                html.Ul(className='navbar-nav ms-auto', children=[
+                    html.Li(className='nav-item', style={"margin-right": "40px"}, children=[
+                        html.A(className='nav-link', href='/', children='Home')
+                    ]),
+                html.Li(className='nav-item dropdown pages-menu', children=[
+                    dbc.DropdownMenu(
+                        label="Systems",
+                        className="dropdown-menu-pages",
+                        children=[
+                            dbc.DropdownMenuItem("About"),
+                            dbc.DropdownMenuItem("Contact")
+                        ]
+                    )
+                ])
+                ])
+            ])
+        ])
+    ]),
     html.Div([
         dcc.Interval(
             id='interval',
-            interval=1000*10, # in milliseconds
+            interval=1000*5, # in milliseconds
             n_intervals=0
         ),
-        dcc.Graph('output')
+        dcc.Graph(id='tgrad')
     ])
-)
+])
 
-@app.callback(Output('output', 'figure'), [Input('interval', 'n_intervals')])
+@app.callback(Output('tgrad', 'figure'), [Input('interval', 'n_intervals')])
 def update_data(n_intervals):
     today = datetime.now()
     startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
@@ -104,16 +128,26 @@ def update_data(n_intervals):
         y.append(dict["Y"])
         temp.append(df["temp"].mean() - cal - rcal - crcal)
         etemp.append(df["temp"].std())
-    figure = px.scatter(title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
-    figure.add_scatter(x=y, y=temp)
+    figure = px.scatter(x=y, y=temp, error_y=etemp, title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
+    figure.update_layout(
+        xaxis_title="Height (m)",
+        yaxis_title="Temperature (K)",
+        font = {
+            "family": "Arial, sans-serif",
+            "size": 14,
+            "color": "black"
+        },
+        title_font = {
+            "family": "Arial, sans-serif",
+            "size": 20,
+            "color": "black"
+        },
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        title_x=0.5,
+    )
+    # figure.add_scatter(x=y, y=temp)
     return figure
 
 if __name__ == '__main__':
     app.run_server(port=4050, debug=True)
-        # plt.errorbar(y, temp, yerr=etemp, fmt="o", capsize=10)
-        # plt.title(f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
-        # # plt.ylim(min(temp)-max(etemp), max(temp)+max(etemp))
-        # plt.xlabel("Height (m)")
-        # plt.ylabel("Temperature (K)")
-        # plt.ylim(min(temp) - max(etemp), max(temp) + max(etemp))
-        # plt.savefig(f"{current_directory}/onlinePlots/tgrad.png")
