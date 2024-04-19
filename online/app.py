@@ -45,6 +45,10 @@ app.layout = html.Div([
                         children=[
                             dbc.DropdownMenuItem("Valencia TGradient", href="/tgrad"),
                             dbc.DropdownMenuItem("APA", href="/apa"),
+                            dbc.DropdownMenuItem("HAWAII", href="/hawaii"),
+                            dbc.DropdownMenuItem("PrM", href="/prm"),
+                            dbc.DropdownMenuItem("Pump", href="/pump"),
+                            dbc.DropdownMenuItem("Pipe", href="/pipe"),
                         ]
                     )
                         ])
@@ -113,6 +117,63 @@ def display_page(pathname):
             html.H1('Sensors on the APAs', style={'text-align': 'center', 'color': 'black', 'font-size': '36px'}),
             dcc.Graph(
                 id='apa',
+                config={'displayModeBar': False},
+                figure = {
+                    'layout': {
+                        'annotations': [{'text': 'Loading...', 'x': 0.5, 'y': 0.5, 'showarrow': False}],
+                        'title': '... Loading temperature graph ...'
+                    }
+                }
+            ),
+        ]),
+    elif pathname == '/hawaii':
+        return html.Div([
+            html.H1('Hawaii TGradient Monitor', style={'text-align': 'center', 'color': 'black', 'font-size': '36px'}),
+            dcc.Graph(
+                id='hawaii',
+                config={'displayModeBar': False},
+                figure = {
+                    'layout': {
+                        'annotations': [{'text': 'Loading...', 'x': 0.5, 'y': 0.5, 'showarrow': False}],
+                        'title': '... Loading temperature graph ...'
+                    }
+                }
+            ),
+        ]),
+    elif pathname == '/prm':
+        return html.Div([
+            html.H1('Purity Monitor Sensors', style={'text-align': 'center', 'color': 'black', 'font-size': '36px'}),
+            dcc.Graph(
+                id='prm',
+                config={'displayModeBar': False},
+                figure = {
+                    'layout': {
+                        'annotations': [{'text': 'Loading...', 'x': 0.5, 'y': 0.5, 'showarrow': False}],
+                        'title': '... Loading temperature graph ...'
+                    }
+                }
+            ),
+        ]),
+    elif pathname == '/pump':
+        return html.Div([
+            html.H1('Pump Sensors', style={'text-align': 'center', 'color': 'black', 'font-size': '36px'}),
+            dcc.Graph(
+                id='pump',
+                config={'displayModeBar': False},
+                figure = {
+                    'layout': {
+                        'annotations': [{'text': 'Loading...', 'x': 0.5, 'y': 0.5, 'showarrow': False}],
+                        'title': '... Loading temperature graph ...'
+                    }
+                }
+            ),
+        ]),
+
+    elif pathname == '/pipe':
+        return html.Div([
+            html.H1('Sensors on the Pipes & Inlets', style={'text-align': 'center', 'color': 'black', 'font-size': '36px'}),
+            dcc.Graph(
+                id='pipe',
                 config={'displayModeBar': False},
                 figure = {
                     'layout': {
@@ -304,7 +365,6 @@ def update_data(n_intervals):
     current_time = today.strftime('%Y-%m-%d %H:%M:%S')
     return table_data, current_time
 
-
 @app.callback(
     Output('apa', 'figure'),
     [Input('interval', 'n_intervals')]
@@ -368,6 +428,240 @@ def update_data(n_intervals):
 
     # Convert subplot to a Plotly figure
     figure = fig.to_dict()
+    return figure
+
+@app.callback(
+    Output('hawaii', 'figure'),
+    [Input('interval', 'n_intervals')]
+)
+def update_data(n_intervals):
+    system = "hawai"
+    allBool = False
+    today = datetime.now().strftime('%y-%m-%d')
+    ref = "40525"
+    FROM_CERN = True
+
+
+    integrationTime = 60  # seconds
+
+    today = datetime.now()
+    startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
+    endTimeStamp = today.timestamp()
+    if FROM_CERN is True:
+        m = MakeData(detector="np04", all=allBool, system=system,
+                        startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
+                        clockTick=60,
+                        ref=ref, FROM_CERN=FROM_CERN)
+    elif FROM_CERN is False:
+        m = MakeData(detector="np04", all=allBool, system=system,
+                        startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        clockTick=60,
+                        ref=ref, FROM_CERN=FROM_CERN)
+    m.getData()
+    y, temp, etemp = [], [], []
+    cnt = 0
+    for name, dict in m.container.items():
+        df = dict["access"].data
+        df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
+        y.append(cnt)
+        temp.append(df["temp"].mean())
+        etemp.append(df["temp"].std())
+        cnt += 1
+    figure = px.scatter(x=y, y=temp, error_y=etemp, title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
+    figure.update_layout(
+        xaxis_title="Height (m)",
+        yaxis_title="Temperature (K)",
+        font = {
+            "family": "Arial, sans-serif",
+            "size": 14,
+            "color": "black"
+        },
+        title_font = {
+            "family": "Arial, sans-serif",
+            "size": 20,
+            "color": "black"
+        },
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        title_x=0.5,
+    )
+    return figure
+
+@app.callback(
+    Output('prm', 'figure'),
+    [Input('interval', 'n_intervals')]
+)
+def update_data(n_intervals):
+    system = "prm"
+    allBool = False
+    today = datetime.now().strftime('%y-%m-%d')
+    ref = "40525"
+    FROM_CERN = True
+
+
+    integrationTime = 60  # seconds
+
+    today = datetime.now()
+    startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
+    endTimeStamp = today.timestamp()
+    if FROM_CERN is True:
+        m = MakeData(detector="np04", all=allBool, system=system,
+                        startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
+                        clockTick=60,
+                        ref=ref, FROM_CERN=FROM_CERN)
+    elif FROM_CERN is False:
+        m = MakeData(detector="np04", all=allBool, system=system,
+                        startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        clockTick=60,
+                        ref=ref, FROM_CERN=FROM_CERN)
+    m.getData()
+    y, temp, etemp = [], [], []
+    cnt = 0
+    for name, dict in m.container.items():
+        df = dict["access"].data
+        df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
+        y.append(cnt)
+        temp.append(df["temp"].mean())
+        etemp.append(df["temp"].std())
+        cnt += 1
+    figure = px.scatter(x=y, y=temp, error_y=etemp, title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
+    figure.update_layout(
+        xaxis_title="Height (m)",
+        yaxis_title="Temperature (K)",
+        font = {
+            "family": "Arial, sans-serif",
+            "size": 14,
+            "color": "black"
+        },
+        title_font = {
+            "family": "Arial, sans-serif",
+            "size": 20,
+            "color": "black"
+        },
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        title_x=0.5,
+    )
+    return figure
+
+@app.callback(
+    Output('pump', 'figure'),
+    [Input('interval', 'n_intervals')]
+)
+def update_data(n_intervals):
+    system = "pp"
+    allBool = False
+    today = datetime.now().strftime('%y-%m-%d')
+    ref = "40525"
+    FROM_CERN = True
+
+
+    integrationTime = 60  # seconds
+
+    today = datetime.now()
+    startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
+    endTimeStamp = today.timestamp()
+    if FROM_CERN is True:
+        m = MakeData(detector="np04", all=allBool, system=system,
+                        startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
+                        clockTick=60,
+                        ref=ref, FROM_CERN=FROM_CERN)
+    elif FROM_CERN is False:
+        m = MakeData(detector="np04", all=allBool, system=system,
+                        startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        clockTick=60,
+                        ref=ref, FROM_CERN=FROM_CERN)
+    m.getData()
+    y, temp, etemp = [], [], []
+    cnt = 0
+    for name, dict in m.container.items():
+        df = dict["access"].data
+        df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
+        y.append(cnt)
+        temp.append(df["temp"].mean())
+        etemp.append(df["temp"].std())
+        cnt += 1
+    figure = px.scatter(x=y, y=temp, error_y=etemp, title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
+    figure.update_layout(
+        xaxis_title="Height (m)",
+        yaxis_title="Temperature (K)",
+        font = {
+            "family": "Arial, sans-serif",
+            "size": 14,
+            "color": "black"
+        },
+        title_font = {
+            "family": "Arial, sans-serif",
+            "size": 20,
+            "color": "black"
+        },
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        title_x=0.5,
+    )
+    return figure
+
+@app.callback(
+    Output('pipe', 'figure'),
+    [Input('interval', 'n_intervals')]
+)
+def update_data(n_intervals):
+    system = "pipe"
+    allBool = False
+    today = datetime.now().strftime('%y-%m-%d')
+    ref = "40525"
+    FROM_CERN = True
+
+
+    integrationTime = 60  # seconds
+
+    today = datetime.now()
+    startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
+    endTimeStamp = today.timestamp()
+    if FROM_CERN is True:
+        m = MakeData(detector="np04", all=allBool, system=system,
+                        startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
+                        clockTick=60,
+                        ref=ref, FROM_CERN=FROM_CERN)
+    elif FROM_CERN is False:
+        m = MakeData(detector="np04", all=allBool, system=system,
+                        startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        clockTick=60,
+                        ref=ref, FROM_CERN=FROM_CERN)
+    m.getData()
+    y, temp, etemp = [], [], []
+    cnt = 0
+    for name, dict in m.container.items():
+        df = dict["access"].data
+        df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
+        if df["temp"].mean() < 0:
+            continue
+        y.append(cnt)
+        temp.append(df["temp"].mean())
+        etemp.append(df["temp"].std())
+        cnt += 1
+    figure = px.scatter(x=y, y=temp, error_y=etemp, title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
+    figure.update_layout(
+        xaxis_title="Height (m)",
+        yaxis_title="Temperature (K)",
+        font = {
+            "family": "Arial, sans-serif",
+            "size": 14,
+            "color": "black"
+        },
+        title_font = {
+            "family": "Arial, sans-serif",
+            "size": 20,
+            "color": "black"
+        },
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        title_x=0.5,
+    )
     return figure
 
 if __name__ == '__main__':
