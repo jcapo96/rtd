@@ -89,12 +89,62 @@
     },
 
 "PIPE":
-    {"sets":[
-        {"CalibSetNumber":"Pipe-1", "Type":"Cal", "Selection":"GOOD"},
-        {"CalibSetNumber":"Pipe-TGrad-1", "Type":"Cal", "Selection":"GOOD"},
-        {"CalibSetNumber":"Pipe-2", "Type":"Cal", "Selection":"GOOD"}
-        ],
+    {"sets":{
+        "first_round":{
+            "Pipe-2":{"CalibSetNumber":"Pipe-2", "Type":"Cal", "Selection":"GOOD"},
+            "LArTGrad-4":{"CalibSetNumber":"LArTGrad-4", "Type":"Cal", "Selection":"GOOD"}
+        },
+        "second_round":{"CalibSetNumber":"Pipe-TGrad-1", "Type":"Cal", "Selection":"GOOD"}
+    },
+    "ids":{
+        "first_round":{
+            "Pipe-2":["39671", "37131", "49319", "37136", "39669", "49320", "39631", "39670", "49321", "37130", "37133", "49322"],
+            "LArTGrad-4":["39610", "39609", "39608", "39607", "39666", "39665",	"39664", "39667", "39661", "39660", "39611", "39642"]
+
+        },
+        "second_round":{
+            "Pipe-TGrad-1":["39671", "37131", "39666", "37136", "39669", "39665", "39631", "39670", "39664", "37130", "37133", "39667"]
+        }
+    },
+    "raised_sensors":{
+        "Pipe-2":["39671", "37131", "37136", "39669", "39631", "39670", "37130", "37133"],
+        "LArTGrad-4":["39666", "39665", "39664", "39667"]
+    },
+    "absolute_references":["44123", "44124"]
+    },
+"GA-PM-PP":
+    {"sets":{
+        "first_round":{
+            "LArTGrad-1":{"CalibSetNumber":"LArTGrad-1", "Type":"Cal", "Selection":"GOOD"},
+            "LArTGrad-2":{"CalibSetNumber":"LArTGrad-2", "Type":"Cal", "Selection":"GOOD"},
+            "LArTGrad-3":{"CalibSetNumber":"LArTGrad-3", "Type":"Cal", "Selection":"GOOD"},
+            "LArTGrad-4":{"CalibSetNumber":"LArTGrad-4", "Type":"Cal", "Selection":"GOOD"},
+            "GA-PM-PP-1":{"CalibSetNumber":"GA-PM-PP-1", "Type":"Cal", "Selection":"GOOD"},
+            "GA-PM-PP-2":{"CalibSetNumber":"GA-PM-PP-2", "Type":"Cal", "Selection":"GOOD"}
+            },
+        "second_round":{"CalibSetNumber":"LArTGrad-2.1", "Type":"Cal", "Selection":"GOOD"}
+        },
+    "ids":{
+        "first_round":{
+            "LArTGrad-1":["39655", "39654",	"39653", "39652", "39651", "39650", "40526", "40525", "40524", "39659", "39658", "39657"],
+            "LArTGrad-2":["39649", "39648", "39647", "39646", "39644", "39630", "39629", "39628", "39627", "39626", "39625", "39624"],
+            "LArTGrad-3":["39623", "39622", "39621", "39620", "39619", "40533",	"40531", "39615", "39614", "39613", "39612", "39642"],
+            "LArTGrad-4":["39610", "39609", "39608", "39607", "39666", "39665",	"39664", "39667", "39661", "39660", "39611", "39642"],
+            "GA-PM-PP-1":["48751", "48746",	"48797", "48490", "48848", "48485",	"48478", "48205", "39666", "40529",	"39622", "39625"],
+            "GA-PM-PP-2":["48733", "49323",	"49324", "48754", "48841", "48836", "37142", "37127", "39610", "40530", "39652", "39647"]
+            },
+        "second_round":{
+            "LArTGrad-2.1":["39610", "39666", "39661", "39622", "40533", "39613", "39647", "39629", "39625", "39652", "40525", "39657"]
+            }
+    },
+    "raised_sensors":{
+        "LArTGrad-1":["39652", "40525", "39657"],
+        "LArTGrad-2":["39647", "39629", "39625"],
+        "LArTGrad-3":["39622", "40533", "39613"],
+        "LArTGrad-4":["39610", "39666", "39661"],
+        "GA-PM-PP-1":["39666", "39622", "39625"],
+        "GA-PM-PP-2":["39610", "39652", "39647"]
+        },
     "absolute_references":["44123", "44124"]
     }
-
 }

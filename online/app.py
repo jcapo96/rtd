@@ -43,12 +43,14 @@ app.layout = html.Div([
                         label="Systems",
                         className="dropdown-menu-pages",
                         children=[
+                            dbc.DropdownMenuItem("Table", href="/table"),
                             dbc.DropdownMenuItem("Valencia TGradient", href="/tgrad"),
                             dbc.DropdownMenuItem("APA", href="/apa"),
                             dbc.DropdownMenuItem("HAWAII", href="/hawaii"),
                             dbc.DropdownMenuItem("PrM", href="/prm"),
                             dbc.DropdownMenuItem("Pump", href="/pump"),
                             dbc.DropdownMenuItem("Pipe", href="/pipe"),
+                            dbc.DropdownMenuItem("Gas Arrays", href="/ga"),
                         ]
                     )
                         ])
@@ -58,7 +60,7 @@ app.layout = html.Div([
         ]),
     dcc.Location(id='url', refresh=False),
     html.Div(id="page-content"),
-    dcc.Interval(id='interval', interval=1000 * 5, n_intervals=0)
+    dcc.Interval(id='interval', interval=1000 * 7, n_intervals=0)
 ])
 
 @app.callback(
@@ -183,6 +185,20 @@ def display_page(pathname):
                 }
             ),
         ]),
+    elif pathname == '/ga':
+        return html.Div([
+            html.H1('Gas Arrays', style={'text-align': 'center', 'color': 'black', 'font-size': '36px'}),
+            dcc.Graph(
+                id='ga',
+                config={'displayModeBar': False},
+                figure = {
+                    'layout': {
+                        'annotations': [{'text': 'Loading...', 'x': 0.5, 'y': 0.5, 'showarrow': False}],
+                        'title': '... Loading temperature graph ...'
+                    }
+                }
+            ),
+        ]),
     else:
         # Return a default page or handle other paths
         return html.Div([
@@ -230,7 +246,7 @@ def update_data(n_intervals):
     endTimeStamp = today.timestamp()
     if FROM_CERN is True:
         m = MakeData(detector="np04", all=allBool, system=system,
-                        startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
                         startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
                         clockTick=60,
                         ref=ref, FROM_CERN=FROM_CERN)
@@ -246,12 +262,16 @@ def update_data(n_intervals):
 
         if caldata is not None:
             if id not in caldata.keys():
-                continue
-            cal = caldata[id][2]*1e-3
+                cal = 0
+            elif id in caldata.keys():
+                cal = caldata[id][2]*1e-3
         elif caldata is None:
             cal = 0
         if rcaldata is not None:
-            rcal = rcaldata[id][2]*1e-3
+            if id not in rcaldata.keys():
+                rcal = 0
+            elif id in rcaldata.keys():
+                rcal = rcaldata[id][2]*1e-3
         elif rcaldata is None:
             rcal = 0
         if crcaldata is not None:
@@ -266,7 +286,6 @@ def update_data(n_intervals):
         y.append(dict["Y"])
         temp.append(df["temp"].mean() - cal - rcal - crcal)
         etemp.append(df["temp"].std())
-    table_data = [{"Height (m)": y[i], "Temperature (K)": temp[i]} for i in range(len(y))]  # Convert to list of dictionaries
     figure = px.scatter(x=y, y=temp, error_y=etemp, title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
     figure.update_layout(
         xaxis_title="Height (m)",
@@ -328,7 +347,7 @@ def update_data(n_intervals):
     endTimeStamp = today.timestamp()
     if FROM_CERN is True:
         m = MakeData(detector="np04", all=allBool, system=system,
-                        startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
                         startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
                         clockTick=60,
                         ref=ref, FROM_CERN=FROM_CERN)
@@ -384,7 +403,7 @@ def update_data(n_intervals):
     endTimeStamp = today.timestamp()
     if FROM_CERN is True:
         m = MakeData(detector="np04", all=allBool, system=system,
-                        startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
                         startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
                         clockTick=60,
                         ref=ref, FROM_CERN=FROM_CERN)
@@ -449,7 +468,7 @@ def update_data(n_intervals):
     endTimeStamp = today.timestamp()
     if FROM_CERN is True:
         m = MakeData(detector="np04", all=allBool, system=system,
-                        startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
                         startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
                         clockTick=60,
                         ref=ref, FROM_CERN=FROM_CERN)
@@ -460,14 +479,12 @@ def update_data(n_intervals):
                         ref=ref, FROM_CERN=FROM_CERN)
     m.getData()
     y, temp, etemp = [], [], []
-    cnt = 0
     for name, dict in m.container.items():
         df = dict["access"].data
         df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
-        y.append(cnt)
+        y.append(dict["Y"])
         temp.append(df["temp"].mean())
         etemp.append(df["temp"].std())
-        cnt += 1
     figure = px.scatter(x=y, y=temp, error_y=etemp, title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
     figure.update_layout(
         xaxis_title="Height (m)",
@@ -496,9 +513,26 @@ def update_data(n_intervals):
     system = "prm"
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
-    ref = "40525"
+    ref = "48733"
     FROM_CERN = True
 
+    pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
+
+    try:
+        with open(f"{pathToCalib}/GA-PM-PP_TREE.json") as f:
+            caldata = json.load(f)[ref]
+
+        with open(f"{pathToCalib}/GA-PM-PP_TREE_rcal.json") as f:
+            rcaldata = json.load(f)[ref]
+    except:
+        print(f"You don't have the access rights to the calibration data: /eos/user/j/jcapotor/RTDdata/calib")
+        print(f"Your data will not be corrected, but STILL DISPLAYED in rtd/onlinePlots")
+        print(f"Ask access to Jordi Capó (jcapo@ific.uv.es) to data and change in line 14 on rtd/pdhd/online.py -> pathToCalib='path/to/your/calib/data' ")
+        print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
+        caldata, rcaldata, crcaldata = None, None, None
+
+    mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
+                        sep=";", decimal=",", header=0)
 
     integrationTime = 60  # seconds
 
@@ -507,7 +541,7 @@ def update_data(n_intervals):
     endTimeStamp = today.timestamp()
     if FROM_CERN is True:
         m = MakeData(detector="np04", all=allBool, system=system,
-                        startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
                         startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
                         clockTick=60,
                         ref=ref, FROM_CERN=FROM_CERN)
@@ -518,14 +552,31 @@ def update_data(n_intervals):
                         ref=ref, FROM_CERN=FROM_CERN)
     m.getData()
     y, temp, etemp = [], [], []
-    cnt = 0
     for name, dict in m.container.items():
+        id = str(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0])
+
+        if caldata is not None:
+            if id not in caldata.keys():
+                cal = 0
+            elif id in caldata.keys():
+                cal = caldata[id][2]*1e-3
+        elif caldata is None:
+            cal = 0
+        if rcaldata is not None:
+            if id not in rcaldata.keys():
+                rcal = 0
+            elif id in rcaldata.keys():
+                rcal = rcaldata[id][2]*1e-3
+        elif rcaldata is None:
+            rcal = 0
+
         df = dict["access"].data
         df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
-        y.append(cnt)
-        temp.append(df["temp"].mean())
+        if df["temp"].mean() < 0:
+            continue
+        y.append(dict["Y"])
+        temp.append(df["temp"].mean() - cal - rcal)
         etemp.append(df["temp"].std())
-        cnt += 1
     figure = px.scatter(x=y, y=temp, error_y=etemp, title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
     figure.update_layout(
         xaxis_title="Height (m)",
@@ -557,6 +608,23 @@ def update_data(n_intervals):
     ref = "40525"
     FROM_CERN = True
 
+    pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
+
+    try:
+        with open(f"{pathToCalib}/GA-PM-PP_TREE.json") as f:
+            caldata = json.load(f)[ref]
+
+        with open(f"{pathToCalib}/GA-PM-PP_TREE_rcal.json") as f:
+            rcaldata = json.load(f)[ref]
+    except:
+        print(f"You don't have the access rights to the calibration data: /eos/user/j/jcapotor/RTDdata/calib")
+        print(f"Your data will not be corrected, but STILL DISPLAYED in rtd/onlinePlots")
+        print(f"Ask access to Jordi Capó (jcapo@ific.uv.es) to data and change in line 14 on rtd/pdhd/online.py -> pathToCalib='path/to/your/calib/data' ")
+        print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
+        caldata, rcaldata, crcaldata = None, None, None
+
+    mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
+                        sep=";", decimal=",", header=0)
 
     integrationTime = 60  # seconds
 
@@ -565,7 +633,7 @@ def update_data(n_intervals):
     endTimeStamp = today.timestamp()
     if FROM_CERN is True:
         m = MakeData(detector="np04", all=allBool, system=system,
-                        startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
                         startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
                         clockTick=60,
                         ref=ref, FROM_CERN=FROM_CERN)
@@ -576,17 +644,34 @@ def update_data(n_intervals):
                         ref=ref, FROM_CERN=FROM_CERN)
     m.getData()
     y, temp, etemp = [], [], []
-    cnt = 0
     for name, dict in m.container.items():
+        id = str(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0])
+
+        if caldata is not None:
+            if id not in caldata.keys():
+                cal = 0
+            elif id in caldata.keys():
+                cal = caldata[id][2]*1e-3
+        elif caldata is None:
+            cal = 0
+        if rcaldata is not None:
+            if id not in rcaldata.keys():
+                rcal = 0
+            elif id in rcaldata.keys():
+                rcal = rcaldata[id][2]*1e-3
+        elif rcaldata is None:
+            rcal = 0
+
         df = dict["access"].data
         df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
-        y.append(cnt)
-        temp.append(df["temp"].mean())
+        if df["temp"].mean() < 0:
+            continue
+        y.append(dict["X"])
+        temp.append(df["temp"].mean() - cal - rcal)
         etemp.append(df["temp"].std())
-        cnt += 1
     figure = px.scatter(x=y, y=temp, error_y=etemp, title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
     figure.update_layout(
-        xaxis_title="Height (m)",
+        xaxis_title="Distance from pump center (m)",
         yaxis_title="Temperature (K)",
         font = {
             "family": "Arial, sans-serif",
@@ -612,9 +697,26 @@ def update_data(n_intervals):
     system = "pipe"
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
-    ref = "40525"
+    ref = "39666"
     FROM_CERN = True
 
+    pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
+
+    try:
+        with open(f"{pathToCalib}/PIPE_TREE.json") as f:
+            caldata = json.load(f)[ref]
+
+        with open(f"{pathToCalib}/PIPE_TREE_rcal.json") as f:
+            rcaldata = json.load(f)[ref]
+    except:
+        print(f"You don't have the access rights to the calibration data: /eos/user/j/jcapotor/RTDdata/calib")
+        print(f"Your data will not be corrected, but STILL DISPLAYED in rtd/onlinePlots")
+        print(f"Ask access to Jordi Capó (jcapo@ific.uv.es) to data and change in line 14 on rtd/pdhd/online.py -> pathToCalib='path/to/your/calib/data' ")
+        print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
+        caldata, rcaldata, crcaldata = None, None, None
+
+    mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
+                        sep=";", decimal=",", header=0)
 
     integrationTime = 60  # seconds
 
@@ -623,7 +725,102 @@ def update_data(n_intervals):
     endTimeStamp = today.timestamp()
     if FROM_CERN is True:
         m = MakeData(detector="np04", all=allBool, system=system,
+                        startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
+                        clockTick=60,
+                        ref=ref, FROM_CERN=FROM_CERN)
+    elif FROM_CERN is False:
+        m = MakeData(detector="np04", all=allBool, system=system,
                         startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        clockTick=60,
+                        ref=ref, FROM_CERN=FROM_CERN)
+    m.getData()
+    y, temp, etemp = [], [], []
+    for name, dict in m.container.items():
+        id = str(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0])
+
+        if caldata is not None:
+            if id not in caldata.keys():
+                cal = 0
+            elif id in caldata.keys():
+                cal = caldata[id][0]*1e-3
+        elif caldata is None:
+            cal = 0
+        if rcaldata is not None:
+            if id not in rcaldata.keys():
+                rcal = 0
+            elif id in rcaldata.keys():
+                rcal = rcaldata[id][0]*1e-3
+        elif rcaldata is None:
+            rcal = 0
+
+        df = dict["access"].data
+        df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
+        if df["temp"].mean() - cal - rcal < 86:
+            continue
+        if df["temp"].mean() - cal - rcal > 88:
+            continue
+        y.append(dict["Z"])
+        temp.append(df["temp"].mean() - cal - rcal)
+        etemp.append(df["temp"].std())
+    figure = px.scatter(x=y, y=temp, error_y=etemp, title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
+    figure.update_layout(
+        xaxis_title="Distance from Jura side (m)",
+        yaxis_title="Temperature (K)",
+        font = {
+            "family": "Arial, sans-serif",
+            "size": 14,
+            "color": "black"
+        },
+        title_font = {
+            "family": "Arial, sans-serif",
+            "size": 20,
+            "color": "black"
+        },
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        title_x=0.5,
+    )
+    return figure
+
+@app.callback(
+    Output('ga', 'figure'),
+    [Input('interval', 'n_intervals')]
+)
+def update_data(n_intervals):
+    system = "GA-2"
+    allBool = False
+    today = datetime.now().strftime('%y-%m-%d')
+    ref = "40525"
+    FROM_CERN = True
+
+    pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
+
+    try:
+        with open(f"{pathToCalib}/GA-PM-PP_TREE.json") as f:
+            caldata = json.load(f)[ref]
+
+        with open(f"{pathToCalib}/GA-PM-PP_TREE_rcal.json") as f:
+            rcaldata = json.load(f)[ref]
+    except:
+        print(f"You don't have the access rights to the calibration data: /eos/user/j/jcapotor/RTDdata/calib")
+        print(f"Your data will not be corrected, but STILL DISPLAYED in rtd/onlinePlots")
+        print(f"Ask access to Jordi Capó (jcapo@ific.uv.es) to data and change in line 14 on rtd/pdhd/online.py -> pathToCalib='path/to/your/calib/data' ")
+        print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
+        print("\n")
+        caldata, rcaldata, crcaldata = None, None, None
+
+    mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
+                        sep=";", decimal=",", header=0)
+
+    integrationTime = 60*2  # seconds
+
+    today = datetime.now()
+    startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
+    endTimeStamp = today.timestamp()
+    if FROM_CERN is True:
+        m = MakeData(detector="np04", all=allBool, system=system,
+                        startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
                         startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
                         clockTick=60,
                         ref=ref, FROM_CERN=FROM_CERN)
@@ -636,14 +833,31 @@ def update_data(n_intervals):
     y, temp, etemp = [], [], []
     cnt = 0
     for name, dict in m.container.items():
+        id = str(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0])
+
+        if caldata is not None:
+            if id not in caldata.keys():
+                cal = 0
+            elif id in caldata.keys():
+                cal = caldata[id][2]*1e-3
+        elif caldata is None:
+            cal = 0
+        if rcaldata is not None:
+            if id not in rcaldata.keys():
+                rcal = 0
+            elif id in rcaldata.keys():
+                rcal = rcaldata[id][2]*1e-3
+        elif rcaldata is None:
+            rcal = 0
+
         df = dict["access"].data
         df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
         if df["temp"].mean() < 0:
             continue
         y.append(cnt)
-        temp.append(df["temp"].mean())
-        etemp.append(df["temp"].std())
         cnt += 1
+        temp.append(df["temp"].mean() - cal - rcal)
+        etemp.append(df["temp"].std())
     figure = px.scatter(x=y, y=temp, error_y=etemp, title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
     figure.update_layout(
         xaxis_title="Height (m)",
@@ -663,6 +877,5 @@ def update_data(n_intervals):
         title_x=0.5,
     )
     return figure
-
 if __name__ == '__main__':
     app.run_server(debug=True)

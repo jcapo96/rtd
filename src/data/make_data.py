@@ -138,6 +138,8 @@ class MakeData():
                                                             startDay=self.startDay, endDay=self.endDay, startTime=self.startTime, endTime=self.endTime,
                                                             FROM_CERN=self.FROM_CERN),
                                             "Y":float(row["Y"]),
+                                            "X":float(row["X"]),
+                                            "Z":float(row["Z"]),
                                             "name":int(row["SC-ID"].split("TE")[1]),
                                             "id":int(row["CAL-ID"])
                                         }
@@ -147,6 +149,8 @@ class MakeData():
                                                             startDay=self.startDay, endDay=self.endDay, startTime=self.startTime, endTime=self.endTime,
                                                             FROM_CERN=self.FROM_CERN),
                                             "Y":-999,
+                                            "X":-999,
+                                            "Z":-999,
                                             "name":int(999),
                                             "id":int(999)
                                         }

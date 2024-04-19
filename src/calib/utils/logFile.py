@@ -43,16 +43,16 @@ class LogFile:
             Returns:
                 pandas.DataFrame: DataFrame containing selected files based on the conditions.
             """
-            try:
-                selection = self.log_file.copy()
-                for column, value in kwargs.items():
-                    # Check if the value is a list
-                    if isinstance(value, list):
-                        # Use isin() to filter rows where the value of the column is in the list
-                        selection = selection.loc[selection[column].isin(value)]
-                    else:
-                        # If the value is not a list, filter rows where the value of the column matches the single value
-                        selection = selection.loc[selection[column] == value]
-                return selection
-            except Exception as e:
-                raise RuntimeError(f"An error occurred while selecting files: {e}")
+            # try:
+            selection = self.log_file.copy()
+            for column, value in kwargs.items():
+                # Check if the value is a list
+                if isinstance(value, list):
+                    # Use isin() to filter rows where the value of the column is in the list
+                    selection = selection.loc[selection[column].isin(value)]
+                else:
+                    # If the value is not a list, filter rows where the value of the column matches the single value
+                    selection = selection.loc[selection[column] == value]
+            return selection
+            # except Exception as e:
+            #     raise RuntimeError(f"An error occurred while selecting files: {e}")
