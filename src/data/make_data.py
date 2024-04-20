@@ -142,7 +142,8 @@ class MakeData():
                                             "Z":float(row["Z"]),
                                             "name":int(row["SC-ID"].split("TE")[1]),
                                             "id":int(row["CAL-ID"]),
-                                            "SYSTEM":str(row["SYSTEM"])
+                                            "SYSTEM":str(row["SYSTEM"]),
+                                            "type":str(row["NAME"])
                                         }
             except:
                 self.container[row["SC-ID"]] = {
@@ -154,7 +155,8 @@ class MakeData():
                                             "Z":-999,
                                             "name":int(999),
                                             "id":int(999),
-                                            "SYSTEM":str(row["SYSTEM"])
+                                            "SYSTEM":str(row["SYSTEM"]),
+                                            "type":str(row["NAME"])
                                         }
         return self
 

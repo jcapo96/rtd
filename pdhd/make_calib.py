@@ -13,7 +13,7 @@ readouts = ["ific", "cern"]
 #     s = system.System(system_name=name)
 #     s.save()
 
-s = system.System(system_name="pipe")
+s = system.System(system_name="lartgrad")
 s.save()
 
 # readout = makeRCalib.ReadoutCalib(readout="ific")

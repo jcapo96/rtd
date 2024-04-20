@@ -64,7 +64,7 @@ app.layout = html.Div([
         ]),
     dcc.Location(id='url', refresh=False),
     html.Div(id="page-content"),
-    dcc.Interval(id='interval', interval=1000 * 10, n_intervals=0),
+    dcc.Interval(id='interval', interval=1000 * 12, n_intervals=0),
     dcc.Interval(id='interval-quick', interval=1000 * 5, n_intervals=0),
     dcc.Interval(id="interval-graph-update", interval = 1000*2, n_intervals=0),
 ])
@@ -102,6 +102,38 @@ def display_page(pathname):
                         html.H1('APA temperatures', style={'text-align': 'center', 'color': 'black', 'font-size': '24px'}),
                         dcc.Graph(
                             id='apa',
+                            config={'displayModeBar': False},
+                            figure={
+                                'layout': {
+                                    'annotations': [{'text': 'Loading...', 'x': 0.5, 'y': 0.5, 'showarrow': False}],
+                                    'title': '... Loading temperature graph ...'
+                                }
+                            }
+                        ),
+                    ], style={'border': '1px solid #000', 'padding': '10px'}),  # Box enclosing the graph
+                ], style={'width': '48%', 'display': 'inline-block', 'padding': '20px', 'vertical-align': 'top'}),
+
+                html.Div([
+                    html.Div([
+                        html.H1('Gas Arrays', style={'text-align': 'center', 'color': 'black', 'font-size': '24px'}),
+                        dcc.Graph(
+                            id='ga',
+                            config={'displayModeBar': False},
+                            figure={
+                                'layout': {
+                                    'annotations': [{'text': 'Loading...', 'x': 0.5, 'y': 0.5, 'showarrow': False}],
+                                    'title': '... Loading temperature graph ...'
+                                }
+                            }
+                        ),
+                    ], style={'border': '1px solid #000', 'padding': '10px'}),  # Box enclosing the graph
+                ], style={'width': '48%', 'display': 'inline-block', 'padding': '20px', 'vertical-align': 'top'}),
+
+                html.Div([
+                    html.Div([
+                        html.H1('Pipe Temperatures', style={'text-align': 'center', 'color': 'black', 'font-size': '24px'}),
+                        dcc.Graph(
+                            id='pipe',
                             config={'displayModeBar': False},
                             figure={
                                 'layout': {
@@ -209,14 +241,24 @@ def display_page(pathname):
             'data': [go.Scatter(x=[], y=[], mode='markers', name='Scatter Plot')],
             'layout': go.Layout(
                 title='Pump Sensors',
-                xaxis={'title': 'X Axis Label'},
-                yaxis={'title': 'Y Axis Label'}
+                xaxis={'title': 'Epoch Time (s)'},
+                yaxis={'title': 'Temperature (K)'}
             )
         }
 
         return html.Div([
             html.H1('Pump Sensors', style={'text-align': 'center', 'color': 'black', 'font-size': '36px'}),
             dcc.Graph(id='pump-extendable', figure=extended_figure),
+            dcc.Graph(
+                id='pump',
+                config={'displayModeBar': False},
+                figure = {
+                    'layout': {
+                        'annotations': [{'text': 'Loading...', 'x': 0.5, 'y': 0.5, 'showarrow': False}],
+                        'title': '... Loading temperature graph ...'
+                    }
+                }
+            ),
         ]),
 
     elif pathname == '/pipe':
@@ -312,14 +354,14 @@ def update_data(n_intervals):
             if id not in caldata.keys():
                 cal = 0
             elif id in caldata.keys():
-                cal = caldata[id][2]*1e-3
+                cal = caldata[id][0]*1e-3
         elif caldata is None:
             cal = 0
         if rcaldata is not None:
             if id not in rcaldata.keys():
                 rcal = 0
             elif id in rcaldata.keys():
-                rcal = rcaldata[id][2]*1e-3
+                rcal = rcaldata[id][0]*1e-3
         elif rcaldata is None:
             rcal = 0
         if crcaldata is not None:
@@ -780,7 +822,7 @@ def update_data(n_intervals):
 
 @app.callback(
     Output('pump', 'figure'),
-    [Input('interval-quick', 'n_intervals')]
+    [Input('interval', 'n_intervals')]
 )
 def update_data(n_intervals):
     system = "pp"
@@ -845,13 +887,16 @@ def update_data(n_intervals):
 
         df = dict["access"].data
         df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
-        if df["temp"].mean() < 0:
-            continue
         y.append(dict["X"])
         temp.append(df["temp"].mean() - cal - rcal)
         etemp.append(df["temp"].std())
-    figure = px.scatter(x=y, y=temp, error_y=etemp, title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
+    figure = go.Figure(
+        data=[
+            go.Scatter(x=y, y=temp, error_y={"type":"data", "array":etemp}, mode="markers", name="Pump"),
+        ]
+    )
     figure.update_layout(
+        title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}",
         xaxis_title="Distance from pump center (m)",
         yaxis_title="Temperature (K)",
         font = {
@@ -875,7 +920,7 @@ def update_data(n_intervals):
               [Input('interval-graph-update', 'n_intervals')],
               [State('pump-extendable', 'figure')])
 
-def update_data(n_intervals, existing_figure):
+def update_data_real_time(n_intervals, existing_figure):
     system = "pp"
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
@@ -1022,10 +1067,13 @@ def update_data(n_intervals):
                         clockTick=60,
                         ref=ref, FROM_CERN=FROM_CERN)
     m.getData()
-    y, temp, etemp = [], [], []
+    y = {"I":[], "U":[], "M":[]}
+    z = {"I":[], "U":[], "M":[]}
+    temp = {"I":[], "U":[], "M":[]}
+    etemp = {"I":[], "U":[], "M":[]}
     for name, dict in m.container.items():
         id = str(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0])
-
+        stype = str(dict["type"].split("-")[1])
         if caldata is not None:
             if id not in caldata.keys():
                 cal = 0
@@ -1047,11 +1095,19 @@ def update_data(n_intervals):
             continue
         if df["temp"].mean() - cal - rcal > 88:
             continue
-        y.append(dict["Z"])
-        temp.append(df["temp"].mean() - cal - rcal)
-        etemp.append(df["temp"].std())
-    figure = px.scatter(x=y, y=temp, error_y=etemp, title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
+        y[stype].append(dict["Y"])
+        z[stype].append(dict["Z"])
+        temp[stype].append(df["temp"].mean() - cal - rcal)
+        etemp[stype].append(df["temp"].std())
+    figure = go.Figure(
+        data=[
+            go.Scatter(x=z["I"], y=temp["I"], error_y={"type":"data", "array":etemp["I"]}, mode="markers", name="Inlet"),
+            go.Scatter(x=z["U"], y=temp["U"], error_y={"type":"data", "array":etemp["U"]}, mode="markers", name="Up-Inlet"),
+            go.Scatter(x=z["I"], y=temp["M"], error_y={"type":"data", "array":etemp["M"]}, mode="markers", name="Pipe"),
+        ]
+    )
     figure.update_layout(
+        title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}",
         xaxis_title="Distance from Jura side (m)",
         yaxis_title="Temperature (K)",
         font = {
@@ -1072,14 +1128,14 @@ def update_data(n_intervals):
 
 @app.callback(
     Output('ga', 'figure'),
-    [Input('interval-quick', 'n_intervals')]
+    [Input('interval', 'n_intervals')]
 )
 def update_data(n_intervals):
-    system = "GA-1"
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
     ref = "40525"
     FROM_CERN = True
+    sensors = [f"TE0{number}" for number in range(265, 302)]
 
     pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
 
@@ -1106,21 +1162,23 @@ def update_data(n_intervals):
     startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
     endTimeStamp = today.timestamp()
     if FROM_CERN is True:
-        m = MakeData(detector="np04", all=allBool, system=system,
+        m = MakeData(detector="np04", all=allBool, sensors=sensors,
                         startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
                         startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
                         clockTick=60,
                         ref=ref, FROM_CERN=FROM_CERN)
     elif FROM_CERN is False:
-        m = MakeData(detector="np04", all=allBool, system=system,
+        m = MakeData(detector="np04", all=allBool, sensors=sensors,
                         startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
                         clockTick=60,
                         ref=ref, FROM_CERN=FROM_CERN)
     m.getData()
-    y, temp, etemp = [], [], []
-    cnt = 0
+    y = {"GA-1":[], "GA-2":[]}
+    temp = {"GA-1":[], "GA-2":[]}
+    etemp = {"GA-1":[], "GA-2":[]}
     for name, dict in m.container.items():
         id = str(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0])
+        stype = str(dict["SYSTEM"])
 
         if caldata is not None:
             if id not in caldata.keys():
@@ -1141,11 +1199,16 @@ def update_data(n_intervals):
         df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
         if df["temp"].mean() < 0:
             continue
-        y.append(cnt)
-        cnt += 1
-        temp.append(df["temp"].mean() - cal - rcal)
-        etemp.append(df["temp"].std())
-    figure = px.scatter(x=y, y=temp, error_y=etemp, title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
+        y[stype].append(dict["Y"])
+        temp[stype].append(df["temp"].mean() - cal - rcal)
+        etemp[stype].append(df["temp"].std())
+
+    figure = go.Figure(
+        data=[
+            go.Scatter(x=y["GA-1"], y=temp["GA-1"], error_y={"type":"data", "array":etemp["GA-1"]}, mode="markers", name="GasArray-1"),
+            go.Scatter(x=y["GA-2"], y=temp["GA-2"], error_y={"type":"data", "array":etemp["GA-2"]}, mode="markers", name="GasArray-2"),
+        ]
+    )
     figure.update_layout(
         xaxis_title="Height (m)",
         yaxis_title="Temperature (K)",
