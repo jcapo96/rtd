@@ -7,6 +7,8 @@ if current_directory not in sys.path:
     sys.path.insert(0, current_directory)
 
 from dash import Input, Output, State, callback_context
+import dash_extendable_graph as deg
+from dash.exceptions import PreventUpdate
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -63,7 +65,9 @@ app.layout = html.Div([
         ]),
     dcc.Location(id='url', refresh=False),
     html.Div(id="page-content"),
-    dcc.Interval(id='interval', interval=1000 * 10, n_intervals=0)
+    dcc.Interval(id='interval', interval=1000 * 10, n_intervals=0),
+    dcc.Interval(id='interval-quick', interval=1000 * 5, n_intervals=0),
+    dcc.Interval(id="interval-graph-update", interval = 1000*2, n_intervals=0),
 ])
 
 @app.callback(
@@ -202,18 +206,18 @@ def display_page(pathname):
             ),
         ]),
     elif pathname == '/pump':
+        extended_figure = {
+            'data': [go.Scatter(x=[], y=[], mode='markers', name='Scatter Plot')],
+            'layout': go.Layout(
+                title='Pump Sensors',
+                xaxis={'title': 'X Axis Label'},
+                yaxis={'title': 'Y Axis Label'}
+            )
+        }
+
         return html.Div([
             html.H1('Pump Sensors', style={'text-align': 'center', 'color': 'black', 'font-size': '36px'}),
-            dcc.Graph(
-                id='pump',
-                config={'displayModeBar': False},
-                figure = {
-                    'layout': {
-                        'annotations': [{'text': 'Loading...', 'x': 0.5, 'y': 0.5, 'showarrow': False}],
-                        'title': '... Loading temperature graph ...'
-                    }
-                }
-            ),
+            dcc.Graph(id='pump-extendable', figure=extended_figure),
         ]),
 
     elif pathname == '/pipe':
@@ -562,7 +566,7 @@ def update_data(n_intervals):
 
 @app.callback(
     Output('apa', 'figure'),
-    [Input('interval', 'n_intervals')]
+    [Input('interval-quick', 'n_intervals')]
 )
 def update_data(n_intervals):
     system = "apa"
@@ -627,7 +631,7 @@ def update_data(n_intervals):
 
 @app.callback(
     Output('hawaii', 'figure'),
-    [Input('interval', 'n_intervals')]
+    [Input('interval-quick', 'n_intervals')]
 )
 def update_data(n_intervals):
     system = "hawai"
@@ -658,6 +662,8 @@ def update_data(n_intervals):
     for name, dict in m.container.items():
         df = dict["access"].data
         df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
+        if df["temp"].mean() > 88.5:
+            continue
         y.append(dict["Y"])
         temp.append(df["temp"].mean())
         etemp.append(df["temp"].std())
@@ -683,7 +689,7 @@ def update_data(n_intervals):
 
 @app.callback(
     Output('prm', 'figure'),
-    [Input('interval', 'n_intervals')]
+    [Input('interval-quick', 'n_intervals')]
 )
 def update_data(n_intervals):
     system = "prm"
@@ -775,7 +781,7 @@ def update_data(n_intervals):
 
 @app.callback(
     Output('pump', 'figure'),
-    [Input('interval', 'n_intervals')]
+    [Input('interval-quick', 'n_intervals')]
 )
 def update_data(n_intervals):
     system = "pp"
@@ -865,15 +871,121 @@ def update_data(n_intervals):
     )
     return figure
 
+
+@app.callback(Output('pump-extendable', 'figure'),
+              [Input('interval-graph-update', 'n_intervals')],
+              [State('pump-extendable', 'figure')])
+
+def update_data(n_intervals, existing_figure):
+    system = "pp"
+    allBool = False
+    today = datetime.now().strftime('%y-%m-%d')
+    ref = "40525"
+    FROM_CERN = True
+
+    pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
+
+    try:
+        with open(f"{pathToCalib}/GA-PM-PP_TREE.json") as f:
+            caldata = json.load(f)[ref]
+
+        with open(f"{pathToCalib}/GA-PM-PP_TREE_rcal.json") as f:
+            rcaldata = json.load(f)[ref]
+    except:
+        print(f"You don't have the access rights to the calibration data: /eos/user/j/jcapotor/RTDdata/calib")
+        print(f"Your data will not be corrected, but STILL DISPLAYED in rtd/onlinePlots")
+        print(f"Ask access to Jordi Capó (jcapo@ific.uv.es) to data and change in line 14 on rtd/pdhd/online.py -> pathToCalib='path/to/your/calib/data' ")
+        print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
+        caldata, rcaldata, crcaldata = None, None, None
+
+    mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
+                        sep=";", decimal=",", header=0)
+
+    integrationTime = 60  # seconds
+
+    today = datetime.now()
+    startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
+    endTimeStamp = today.timestamp()
+    if FROM_CERN is True:
+        m = MakeData(detector="np04", all=allBool, system=system,
+                        startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
+                        clockTick=60,
+                        ref=ref, FROM_CERN=FROM_CERN)
+    elif FROM_CERN is False:
+        m = MakeData(detector="np04", all=allBool, system=system,
+                        startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        clockTick=60,
+                        ref=ref, FROM_CERN=FROM_CERN)
+    m.getData()
+
+    temp, time, etemp, scatter_traces = {}, {}, {}, {}
+    for name, dict in m.container.items():
+        id = str(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0])
+        temp[id] = []
+        time[id] = []
+        etemp[id] = []
+    for name, dict in m.container.items():
+        id = str(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0])
+        if caldata is not None:
+            if id not in caldata.keys():
+                cal = 0
+            elif id in caldata.keys():
+                cal = caldata[id][2]*1e-3
+        elif caldata is None:
+            cal = 0
+        if rcaldata is not None:
+            if id not in rcaldata.keys():
+                rcal = 0
+            elif id in rcaldata.keys():
+                rcal = rcaldata[id][2]*1e-3
+        elif rcaldata is None:
+            rcal = 0
+
+        df = dict["access"].data
+        df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
+        if df["temp"].mean() < 0:
+            continue
+        temp[id].append(df["temp"].mean() - cal - rcal)
+        time[id].append(df["epochTime"].mean())
+        etemp[id].append(df["temp"].std())
+
+    for id in temp.keys():
+        scatter_trace = go.Scatter(
+            x=time[id],
+            y=temp[id],
+            mode='markers',
+            marker={"size": 10},
+            name=id  # Set trace name to the ID
+        )
+        if existing_figure is not None and 'data' in existing_figure:
+            existing_traces = [trace for trace in existing_figure['data'] if trace['name'] == id]
+            if existing_traces:
+                existing_trace = existing_traces[0]
+                existing_trace['x'] += time[id]
+                existing_trace['y'] += temp[id]
+                scatter_trace = existing_trace
+        scatter_traces[id] = scatter_trace
+
+    extended_data = list(scatter_traces.values())
+
+    extended_figure = {
+        'data': extended_data,
+        'layout': existing_figure['layout'] if existing_figure else {}
+    }
+
+    return extended_figure
+
+
 @app.callback(
     Output('pipe', 'figure'),
-    [Input('interval', 'n_intervals')]
+    [Input('interval-quick', 'n_intervals')]
 )
 def update_data(n_intervals):
     system = "pipe"
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
-    ref = "39666"
+    ref = "37131"
     FROM_CERN = True
 
     pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
@@ -961,7 +1073,7 @@ def update_data(n_intervals):
 
 @app.callback(
     Output('ga', 'figure'),
-    [Input('interval', 'n_intervals')]
+    [Input('interval-quick', 'n_intervals')]
 )
 def update_data(n_intervals):
     system = "GA-2"

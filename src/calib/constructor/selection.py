@@ -1,5 +1,7 @@
 import numpy as np
+import os
 from .run import Run
+import matplotlib.pyplot as plt
 
 class Selection:
     """Represents a selection of data for calibration."""
@@ -51,3 +53,33 @@ class Selection:
         self.ids = self.calconst.keys()
 
         return self
+
+    def draw_selection(self, ref, pathToSaveFolder=None):
+        calib_set_number = self.selection['CalibSetNumber'].values[0]
+        if not os.path.exists(f"{pathToSaveFolder}/{calib_set_number}"):
+            os.makedirs(f"{pathToSaveFolder}/{calib_set_number}")
+
+        for nrun, run in enumerate(self.runs.values()):
+            temp_figure = plt.figure(figsize=(10, 10))
+            run.compute_offset(ref=ref)
+            run.compute_rcal(ref=ref)
+
+            for id in run.ids:
+                if id == "timeStamp":
+                    continue
+                plt.plot(run.offset["timeStamp"].values, run.offset[id].values, label=fr"{id}: $\sigma$={run.offset[id].std():.1f} mK")
+
+            plt.title(f"Reference: {ref}", fontsize=20)
+            plt.xlabel("Epoch Time (s)", fontsize=16, fontweight='bold')
+            plt.ylabel("Offset (mK)", fontsize=16, fontweight='bold')
+            plt.xticks(fontsize=14)
+            plt.yticks(fontsize=14)
+            plt.grid(True)
+            plt.legend(ncol=2, loc="upper right", fontsize=12)
+
+            # Save the figure
+            temp_figure.savefig(f"{pathToSaveFolder}/{calib_set_number}/ref={ref}_run=run{nrun}.png")
+            plt.close(temp_figure)
+
+
+

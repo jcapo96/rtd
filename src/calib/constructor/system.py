@@ -42,6 +42,7 @@ class System:
         """
         # Define the path for saving the JSON file
         path = f"/eos/user/j/jcapotor/RTDdata/calib/{self.systemName}_{method}"
+        pathToSaveFolder = f"/eos/user/j/jcapotor/RTDdata/calib/plots/{self.systemName}_{method}"
 
         # Determine the data to save based on the specified method
         if method.upper() == "REF":
@@ -51,7 +52,7 @@ class System:
             rdata = self.ref.rcalresults
         elif method.upper() == "TREE":
             # Generate calibration results using the TreeMethod
-            self.tree.make()
+            self.tree.make(pathToSaveFolder=pathToSaveFolder)
             data = self.tree.calresults
             rdata = self.tree.rcalresults
 

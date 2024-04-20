@@ -73,7 +73,7 @@ class TreeMethod:
         self.calerrors = {}
         self.rcalresults = {}
 
-    def make(self):
+    def make(self, pathToSaveFolder=None):
         """
         Performs calibration computations and generates results using the tree method.
 
@@ -98,6 +98,7 @@ class TreeMethod:
                     self.rcalresults[ref] = {}
                     # Compute calibration constants for the first round reference
                     first_round_ref.compute_calconst(ref=ref)
+                    first_round_ref.draw_selection(ref=ref, pathToSaveFolder=pathToSaveFolder)
                     # Iterate over calibration sets and sensor IDs from the first round
                     for calset_sens, sensors in self.info["ids"]["first_round"].items():
                         # if calset_sens == calset_ref:
@@ -118,6 +119,7 @@ class TreeMethod:
                             for raised_ref in self.info["raised_sensors"][calset_ref]:
                                 # Compute calibration constants for the second round sensors
                                 second_round_sens.compute_calconst(ref=raised_ref)
+                                second_round_sens.draw_selection(ref=raised_ref, pathToSaveFolder=pathToSaveFolder)
                                 # Iterate over sensor IDs from the current calibration set
                                 for id in sensors:
                                     # Calculate offsets and errors for the current sensor ID
