@@ -7,7 +7,6 @@ if current_directory not in sys.path:
     sys.path.insert(0, current_directory)
 
 from dash import Input, Output, State, callback_context
-import dash_extendable_graph as deg
 from dash.exceptions import PreventUpdate
 import plotly.express as px
 import plotly.graph_objects as go
@@ -1076,7 +1075,7 @@ def update_data(n_intervals):
     [Input('interval-quick', 'n_intervals')]
 )
 def update_data(n_intervals):
-    system = "GA-2"
+    system = "GA-1"
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
     ref = "40525"
@@ -1165,5 +1164,6 @@ def update_data(n_intervals):
         title_x=0.5,
     )
     return figure
+
 if __name__ == '__main__':
     app.run_server(debug=True)
