@@ -28,7 +28,10 @@ current_time = "... Initializing ..."
 app.layout = html.Div([
     html.Nav(className='navbar navbar-expand-lg navbar-light bg-light', children=[
         html.Div(className='container', children=[
-            html.A(className='navbar-brand', href='#', children='Temperature Monitoring System - Slow Control'),
+            html.A(className='navbar-brand', href='#', children=[
+                html.Img(src=app.get_asset_url('logo.png'), height="30"),
+                '\t \t Temperature Monitoring System - Slow Control'
+            ]),
             html.Button(className='navbar-toggler', type='button', **{'data-toggle': 'collapse', 'data-target': '#navbarSupportedContent',
                                'aria-controls': 'navbarSupportedContent', 'aria-expanded': 'false', 'aria-label': 'Toggle navigation'}, children=[
                 html.Span(className='navbar-toggler-icon')
@@ -60,7 +63,7 @@ app.layout = html.Div([
         ]),
     dcc.Location(id='url', refresh=False),
     html.Div(id="page-content"),
-    dcc.Interval(id='interval', interval=1000 * 7, n_intervals=0)
+    dcc.Interval(id='interval', interval=1000 * 10, n_intervals=0)
 ])
 
 @app.callback(
@@ -70,8 +73,50 @@ app.layout = html.Div([
 def display_page(pathname):
     if pathname == '/':
         # Return the layout for the home page
+        return html.Div(style={'background-color': '#f2f2f2'}, children=[
+                html.Div(style={'margin-top': '20px', "background-color":'#f3f3f3'}),  # Add separation between H1 and top navbar
+                html.H1('Temperature Status: Overview', style={'text-align': 'center', 'color': 'black', 'font-size': '24px'}),
+                # Left div with the first graph
+                html.Div([
+                    html.Div([
+                        html.H1('T-Profiles', style={'text-align': 'center', 'color': 'black', 'font-size': '24px'}),
+                        dcc.Graph(
+                            id='home',
+                            config={'displayModeBar': False},
+                            figure={
+                                'layout': {
+                                    'annotations': [{'text': 'Loading...', 'x': 0.5, 'y': 0.5, 'showarrow': False}],
+                                    'title': '... Loading temperature graph ...'
+                                }
+                            }
+                        ),
+                    ], style={'border': '1px solid #000', 'padding': '10px'}),  # Box enclosing the graph
+                ], style={'width': '48%', 'display': 'inline-block', 'padding': '20px', 'vertical-align': 'top'}),
+
+                # Right div with the second graph
+                html.Div([
+                    html.Div([
+                        html.H1('APA temperatures', style={'text-align': 'center', 'color': 'black', 'font-size': '24px'}),
+                        dcc.Graph(
+                            id='apa',
+                            config={'displayModeBar': False},
+                            figure={
+                                'layout': {
+                                    'annotations': [{'text': 'Loading...', 'x': 0.5, 'y': 0.5, 'showarrow': False}],
+                                    'title': '... Loading temperature graph ...'
+                                }
+                            }
+                        ),
+                    ], style={'border': '1px solid #000', 'padding': '10px'}),  # Box enclosing the graph
+                ], style={'width': '48%', 'display': 'inline-block', 'padding': '20px', 'vertical-align': 'top'}),
+            ])
+
+
+
+    elif pathname == '/table':
+        # Return the layout for the home page
         return html.Div([
-            html.H1('Home Page', style={'text-align': 'center', 'color': 'black', 'font-size': '36px'}),
+            html.H1('Temperatures', style={'text-align': 'center', 'color': 'black', 'font-size': '36px'}),
             html.P(f'Current time: {current_time}', id="time"),
             dash_table.DataTable(
                 id='table',
@@ -290,6 +335,137 @@ def update_data(n_intervals):
     figure.update_layout(
         xaxis_title="Height (m)",
         yaxis_title="Temperature (K)",
+        font = {
+            "family": "Arial, sans-serif",
+            "size": 14,
+            "color": "black"
+        },
+        title_font = {
+            "family": "Arial, sans-serif",
+            "size": 20,
+            "color": "black"
+        },
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        title_x=0.5,
+    )
+    return figure
+
+@app.callback(
+    Output('home', 'figure'),
+    [Input('interval', 'n_intervals')]
+)
+def update_data(n_intervals):
+    allBool = False
+    today = datetime.now().strftime('%y-%m-%d')
+    path = "/eos/user/j/jcapotor/PDHDdata/"
+    ref = "40525"
+
+    mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
+                        sep=";", decimal=",", header=0)
+
+    sensors = mapping.head(72)["SC-ID"].values
+
+    FROM_CERN = True
+
+    pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
+
+    integrationTime = 60  # seconds
+
+    try:
+        with open(f"{pathToCalib}/LARTGRAD_TREE.json") as f:
+            caldata = json.load(f)[ref]
+
+        with open(f"{pathToCalib}/LARTGRAD_TREE_rcal.json") as f:
+            rcaldata = json.load(f)[ref]
+
+        with open(f"{pathToCalib}/CERNRCalib.json") as f:
+            crcaldata = json.load(f)
+    except:
+        print(f"You don't have the access rights to the calibration data: /eos/user/j/jcapotor/RTDdata/calib")
+        print(f"Your data will not be corrected, but STILL DISPLAYED in rtd/onlinePlots")
+        print(f"Ask access to Jordi Capó (jcapo@ific.uv.es) to data and change in line 14 on rtd/pdhd/online.py -> pathToCalib='path/to/your/calib/data' ")
+        print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
+        caldata, rcaldata, crcaldata = None, None, None
+
+    today = datetime.now()
+    startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
+    endTimeStamp = today.timestamp()
+    if FROM_CERN is True:
+        m = MakeData(detector="np04", all=allBool, sensors=sensors,
+                        startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
+                        clockTick=60,
+                        ref=ref, FROM_CERN=FROM_CERN)
+    elif FROM_CERN is False:
+        m = MakeData(detector="np04", all=allBool, sensors=sensors,
+                        startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        clockTick=60,
+                        ref=ref, FROM_CERN=FROM_CERN)
+    m.getData()
+    y = {"TGRAD":[], "HAWAI":[]}
+    temp = {"TGRAD":[], "HAWAI":[]}
+    etemp = {"TGRAD":[], "HAWAI":[]}
+    for name, dict in m.container.items():
+        id = str(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0])
+
+        if caldata is not None:
+            if id not in caldata.keys():
+                cal = 0
+            elif id in caldata.keys():
+                cal = caldata[id][2]*1e-3
+        elif caldata is None:
+            cal = 0
+        if rcaldata is not None:
+            if id not in rcaldata.keys():
+                rcal = 0
+            elif id in rcaldata.keys():
+                rcal = rcaldata[id][2]*1e-3
+        elif rcaldata is None:
+            rcal = 0
+        if crcaldata is not None:
+            try:
+                crcal = np.mean(crcaldata[f"s{int(name.split('TE')[1])}"])*1e-3
+            except:
+                crcal = 0
+        elif crcaldata is None:
+            crcal = 0
+        df = dict["access"].data
+        df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
+        # if (df["temp"].mean() - cal - rcal - crcal) > 88:
+        #     continue
+
+        y[dict["SYSTEM"]].append(dict["Y"])
+        temp[dict["SYSTEM"]].append(df["temp"].mean() - cal - rcal - crcal)
+        etemp[dict["SYSTEM"]].append(df["temp"].std())
+
+    trace1 = go.Scatter(
+        x=y["TGRAD"],
+        y=temp["TGRAD"],
+        error_y={"type":"data", "array":etemp["TGRAD"], "visible":True},
+        name="VALENCIA",
+        mode="markers",
+        marker={
+            "color":'rgb(34,163,192)'
+        }
+    )
+    trace2 = go.Scatter(
+        x=y["HAWAI"],
+        y=temp["HAWAI"],
+        error_y={"type":"data", "array":etemp["HAWAI"], "visible":True},
+        name="HAWAII",
+        mode="markers",
+        yaxis='y2'
+
+    )
+
+    figure = make_subplots(specs=[[{"secondary_y": True}]])
+    figure.add_trace(trace1)
+    figure.add_trace(trace2,secondary_y=False)
+    figure.update_layout(
+        xaxis_title="Height (m)",
+        yaxis_title="Temperature (K)",
+        title = f"{today.strftime('%Y-%m-%d %H:%M:%S')}",
         font = {
             "family": "Arial, sans-serif",
             "size": 14,
