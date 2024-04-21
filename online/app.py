@@ -8,6 +8,7 @@ if current_directory not in sys.path:
 
 from dash import Input, Output, State, callback_context
 from dash.exceptions import PreventUpdate
+from dash_bootstrap_templates import load_figure_template
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -20,6 +21,7 @@ import numpy as np
 import dash_bootstrap_components as dbc
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], prevent_initial_callbacks=True)
+load_figure_template("bootstrap")
 app.config["suppress_callback_exceptions"] = True
 
 empty_data = {'Height (m)': [], 'Temperature (K)': []}
@@ -42,32 +44,41 @@ app.layout = html.Div([
                     html.Li(className='nav-item', style={"margin-right": "40px"}, children=[
                         html.A(className='nav-link', href='/', children='Home')
                     ]),
-                html.Li(className='nav-item dropdown pages-menu', children=[
-                    dbc.DropdownMenu(
-                        label="Systems",
-                        className="dropdown-menu-pages",
-                        children=[
-                            dbc.DropdownMenuItem("Table", href="/table"),
-                            dbc.DropdownMenuItem("Valencia TGradient", href="/tgrad"),
-                            dbc.DropdownMenuItem("APA", href="/apa"),
-                            dbc.DropdownMenuItem("HAWAII", href="/hawaii"),
-                            dbc.DropdownMenuItem("PrM", href="/prm"),
-                            dbc.DropdownMenuItem("Pump", href="/pump"),
-                            dbc.DropdownMenuItem("Pipe", href="/pipe"),
-                            dbc.DropdownMenuItem("Gas Arrays", href="/ga"),
-                        ]
-                    )
-                        ])
+                    html.Li(className='nav-item dropdown pages-menu', children=[
+                        dbc.DropdownMenu(
+                            label="Systems",
+                            className="dropdown-menu-pages",
+                            children=[
+                                dbc.DropdownMenuItem("Table", href="/table"),
+                                dbc.DropdownMenuItem("Valencia TGradient", href="/tgrad"),
+                                dbc.DropdownMenuItem("APA", href="/apa"),
+                                dbc.DropdownMenuItem("HAWAII", href="/hawaii"),
+                                dbc.DropdownMenuItem("PrM", href="/prm"),
+                                dbc.DropdownMenuItem("Pump", href="/pump"),
+                                dbc.DropdownMenuItem("Pipe", href="/pipe"),
+                                dbc.DropdownMenuItem("Gas Arrays", href="/ga"),
+                            ]
+                        )
                     ])
                 ])
             ])
-        ]),
+        ])
+    ]),
     dcc.Location(id='url', refresh=False),
     html.Div(id="page-content"),
     dcc.Interval(id='interval', interval=1000 * 12, n_intervals=0),
     dcc.Interval(id='interval-medium', interval=1000 * 5, n_intervals=0),
     dcc.Interval(id='interval-quick', interval=1000 * 3, n_intervals=0),
     dcc.Interval(id="interval-graph-update", interval = 1000*2, n_intervals=0),
+
+    # Bottom bar
+    html.Footer([
+        html.Div([
+            html.Div('Developer: Jordi Capó', style={'flex': '1'}),
+            html.Div('Institution: IFIC (Valencia, Spain)', style={'flex': '1'}),
+            html.Div(html.A('jcapo@ific.uv.es', href='mailto:jcapo@ific.uv.es'), style={'flex': '1'})
+        ], style={'display': 'flex', 'justify-content': 'space-between', 'padding': '10px', 'background-color': '#f0f0f0'})
+    ])
 ])
 
 @app.callback(
