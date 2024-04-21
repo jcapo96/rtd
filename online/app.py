@@ -42,7 +42,10 @@ app.layout = html.Div([
             html.Div(className='collapse navbar-collapse', id='navbarSupportedContent', children=[
                 html.Ul(className='navbar-nav ms-auto', children=[
                     html.Li(className='nav-item', style={"margin-right": "40px"}, children=[
-                        html.A(className='nav-link', href='/', children='Home')
+                        html.A(className='nav-link', href='/', children='Home'),
+                    ]),
+                    html.Li(className='nav-item', style={"margin-right": "40px"}, children=[
+                        html.A(className='nav-link', href='/3d', children='3D'),
                     ]),
                     html.Li(className='nav-item dropdown pages-menu', children=[
                         dbc.DropdownMenu(
@@ -301,12 +304,144 @@ def display_page(pathname):
                 }
             ),
         ]),
+    elif pathname == '/3d':
+        return html.Div([
+            html.H4('Temperature Map in the cryostat', style={'text-align': 'center'}),
+            html.Button('Update', id='button', style={'display': 'block', 'margin': 'auto'}),
+            dcc.Graph(id="3dgraph",
+                    figure={
+                        'layout': {
+                            'title': 'Click Update button'
+                        }
+                    }),
+            html.P("Height:"),
+            dcc.RangeSlider(
+                id='range-slider',
+                min=0, max=8, step=0.1,
+                marks={0: '0', 2.5: '2.5'},
+                value=[0.0, 8.0]
+            ),
+        ])
     else:
         # Return a default page or handle other paths
         return html.Div([
             html.H1('404 - Page Not Found'),
             html.P(f'The page "{pathname}" was not found.')
         ])
+
+@app.callback(
+    Output('3dgraph', 'figure'),
+    [Input('button', 'n_clicks'),
+     Input("range-slider", "value")]
+)
+
+def update_data(n_clicks, slider_range):
+    if n_clicks:
+        system = "tgrad"
+        allBool = False
+        today = datetime.now().strftime('%y-%m-%d')
+        path = "/eos/user/j/jcapotor/PDHDdata/"
+        ref = "40525"
+        FROM_CERN = True
+
+        pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
+
+        integrationTime = 60  # seconds
+
+        try:
+            with open(f"{pathToCalib}/LARTGRAD_TREE.json") as f:
+                caldata = json.load(f)[ref]
+
+            with open(f"{pathToCalib}/LARTGRAD_TREE_rcal.json") as f:
+                rcaldata = json.load(f)[ref]
+
+            with open(f"{pathToCalib}/CERNRCalib.json") as f:
+                crcaldata = json.load(f)
+        except:
+            print(f"You don't have the access rights to the calibration data: /eos/user/j/jcapotor/RTDdata/calib")
+            print(f"Your data will not be corrected, but STILL DISPLAYED in rtd/onlinePlots")
+            print(f"Ask access to Jordi Capó (jcapo@ific.uv.es) to data and change in line 14 on rtd/pdhd/online.py -> pathToCalib='path/to/your/calib/data' ")
+            print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
+            caldata, rcaldata, crcaldata = None, None, None
+
+        mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
+                            sep=";", decimal=",", header=0)
+        sensors = mapping.head(100)["SC-ID"].values
+
+        today = datetime.now()
+        startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
+        endTimeStamp = today.timestamp()
+        if FROM_CERN is True:
+            m = MakeData(detector="np04", all=allBool, sensors = sensors,
+                            startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                            startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
+                            clockTick=60,
+                            ref=ref, FROM_CERN=FROM_CERN)
+        elif FROM_CERN is False:
+            m = MakeData(detector="np04", all=allBool, sensors = sensors,
+                            startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                            clockTick=60,
+                            ref=ref, FROM_CERN=FROM_CERN)
+        m.getData()
+        x, y, z, temp, etemp = [], [], [], [], []
+        for name, dict in m.container.items():
+            id = str(int(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0]))
+            if caldata is not None:
+                if id not in caldata.keys():
+                    cal = 0
+                elif id in caldata.keys():
+                    cal = caldata[id][0]*1e-3
+            elif caldata is None:
+                cal = 0
+            if rcaldata is not None:
+                if id not in rcaldata.keys():
+                    rcal = 0
+                elif id in rcaldata.keys():
+                    rcal = rcaldata[id][0]*1e-3
+            elif rcaldata is None:
+                rcal = 0
+            if crcaldata is not None:
+                if f"s{int(name.split('TE')[1])}" not in crcaldata.keys():
+                    crcal = 0
+                elif f"s{int(name.split('TE')[1])}" in crcaldata.keys():
+                    crcal = np.mean(crcaldata[f"s{int(name.split('TE')[1])}"])*1e-3
+            elif crcaldata is None:
+                crcal = 0
+            df = dict["access"].data
+            df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
+            if (df["temp"].mean() - cal - rcal - crcal) < 0:
+                continue
+            x.append(dict["X"])
+            y.append(dict["Y"])
+            z.append(dict["Z"])
+            temp.append(df["temp"].mean() - cal - rcal - crcal)
+            etemp.append(df["temp"].std())
+
+        data = pd.DataFrame({"x":x, "y":y, "z":z, "temp":temp})
+        low, high = slider_range
+        mask = (data.y > low) & (data.y  < high)
+        figure = px.scatter_3d(data[mask],
+            x='x', y='z', z='y',
+            color="temp", hover_data=['temp'])
+        figure.update_layout(
+            xaxis_title="Height (m)",
+            yaxis_title="Temperature (K)",
+            title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}",
+            font = {
+                "family": "Arial, sans-serif",
+                "size": 14,
+                "color": "black"
+            },
+            title_font = {
+                "family": "Arial, sans-serif",
+                "size": 20,
+                "color": "black"
+            },
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            title_x=0.5,
+        )
+        return figure
 
 @app.callback(
     Output('tgrad', 'figure'),
