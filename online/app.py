@@ -1101,11 +1101,12 @@ def update_data(n_intervals):
         elif rcaldata is None:
             rcal = 0
 
+        if id == "37136":
+            cal, rcal = -17*1e-3, 0 #THIS NUMBER IS NOT REAL -> SENSOR FAILED DURING CALIBRATION
+
         df = dict["access"].data
         df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
-        if df["temp"].mean() - cal - rcal < 86:
-            continue
-        if df["temp"].mean() - cal - rcal > 88:
+        if df["temp"].mean() - cal - rcal < 0:
             continue
         y[stype].append(dict["Y"])
         z[stype].append(dict["Z"])
@@ -1115,7 +1116,7 @@ def update_data(n_intervals):
         data=[
             go.Scatter(x=z["I"], y=temp["I"], error_y={"type":"data", "array":etemp["I"]}, mode="markers", name="Inlet"),
             go.Scatter(x=z["U"], y=temp["U"], error_y={"type":"data", "array":etemp["U"]}, mode="markers", name="Up-Inlet"),
-            go.Scatter(x=z["I"], y=temp["M"], error_y={"type":"data", "array":etemp["M"]}, mode="markers", name="Pipe"),
+            go.Scatter(x=z["M"], y=temp["M"], error_y={"type":"data", "array":etemp["M"]}, mode="markers", name="Pipe"),
         ]
     )
     figure.update_layout(
