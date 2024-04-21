@@ -65,7 +65,8 @@ app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
     html.Div(id="page-content"),
     dcc.Interval(id='interval', interval=1000 * 12, n_intervals=0),
-    dcc.Interval(id='interval-quick', interval=1000 * 5, n_intervals=0),
+    dcc.Interval(id='interval-medium', interval=1000 * 5, n_intervals=0),
+    dcc.Interval(id='interval-quick', interval=1000 * 3, n_intervals=0),
     dcc.Interval(id="interval-graph-update", interval = 1000*2, n_intervals=0),
 ])
 
@@ -298,7 +299,7 @@ def display_page(pathname):
 
 @app.callback(
     Output('tgrad', 'figure'),
-    [Input('interval', 'n_intervals')]
+    [Input('interval-medium', 'n_intervals')]
 )
 def update_data(n_intervals):
     system = "tgrad"
@@ -348,8 +349,7 @@ def update_data(n_intervals):
     m.getData()
     y, temp, etemp = [], [], []
     for name, dict in m.container.items():
-        id = str(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0])
-
+        id = str(int(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0]))
         if caldata is not None:
             if id not in caldata.keys():
                 cal = 0
@@ -372,7 +372,6 @@ def update_data(n_intervals):
         df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
         if (df["temp"].mean() - cal - rcal - crcal) > 88:
             continue
-
         y.append(dict["Y"])
         temp.append(df["temp"].mean() - cal - rcal - crcal)
         etemp.append(df["temp"].std())
@@ -452,7 +451,7 @@ def update_data(n_intervals):
     temp = {"TGRAD":[], "HAWAI":[]}
     etemp = {"TGRAD":[], "HAWAI":[]}
     for name, dict in m.container.items():
-        id = str(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0])
+        id = str(int(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0]))
 
         if caldata is not None:
             if id not in caldata.keys():
@@ -580,7 +579,7 @@ def update_data(n_intervals):
     m.getData()
     y, temp, etemp = [], [], []
     for name, dict in m.container.items():
-        id = str(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0])
+        id = str(int(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0]))
 
         if caldata is not None:
             if id not in caldata.keys():
@@ -776,7 +775,7 @@ def update_data(n_intervals):
     m.getData()
     y, temp, etemp = [], [], []
     for name, dict in m.container.items():
-        id = str(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0])
+        id = str(int(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0]))
 
         if caldata is not None:
             if id not in caldata.keys():
@@ -868,7 +867,7 @@ def update_data(n_intervals):
     m.getData()
     y, temp, etemp = [], [], []
     for name, dict in m.container.items():
-        id = str(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0])
+        id = str(int(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0]))
 
         if caldata is not None:
             if id not in caldata.keys():
@@ -965,12 +964,12 @@ def update_data_real_time(n_intervals, existing_figure):
 
     temp, time, etemp, scatter_traces = {}, {}, {}, {}
     for name, dict in m.container.items():
-        id = str(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0])
+        id = str(int(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0]))
         temp[id] = []
         time[id] = []
         etemp[id] = []
     for name, dict in m.container.items():
-        id = str(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0])
+        id = str(int(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0]))
         if caldata is not None:
             if id not in caldata.keys():
                 cal = 0
@@ -991,13 +990,14 @@ def update_data_real_time(n_intervals, existing_figure):
         if df["temp"].mean() < 0:
             continue
         temp[id].append(df["temp"].mean() - cal - rcal)
-        time[id].append(df["epochTime"].mean())
+        time[id].append(n_intervals)
         etemp[id].append(df["temp"].std())
 
     for id in temp.keys():
         scatter_trace = go.Scatter(
             x=time[id],
             y=temp[id],
+            error_y = {"type":"data", "array":etemp[id]},
             mode='markers',
             marker={"size": 10},
             name=id  # Set trace name to the ID
@@ -1008,6 +1008,7 @@ def update_data_real_time(n_intervals, existing_figure):
                 existing_trace = existing_traces[0]
                 existing_trace['x'] += time[id]
                 existing_trace['y'] += temp[id]
+                existing_trace['error_y']['array'] += etemp[id]
                 scatter_trace = existing_trace
         scatter_traces[id] = scatter_trace
 
@@ -1072,7 +1073,7 @@ def update_data(n_intervals):
     temp = {"I":[], "U":[], "M":[]}
     etemp = {"I":[], "U":[], "M":[]}
     for name, dict in m.container.items():
-        id = str(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0])
+        id = str(int(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0]))
         stype = str(dict["type"].split("-")[1])
         if caldata is not None:
             if id not in caldata.keys():
@@ -1128,7 +1129,7 @@ def update_data(n_intervals):
 
 @app.callback(
     Output('ga', 'figure'),
-    [Input('interval', 'n_intervals')]
+    [Input('interval-medium', 'n_intervals')]
 )
 def update_data(n_intervals):
     allBool = False
@@ -1177,7 +1178,7 @@ def update_data(n_intervals):
     temp = {"GA-1":[], "GA-2":[]}
     etemp = {"GA-1":[], "GA-2":[]}
     for name, dict in m.container.items():
-        id = str(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0])
+        id = str(int(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0]))
         stype = str(dict["SYSTEM"])
 
         if caldata is not None:
