@@ -20,6 +20,8 @@ import pandas as pd
 import numpy as np
 import dash_bootstrap_components as dbc
 
+FROM_CERN = False
+
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], prevent_initial_callbacks=True)
 load_figure_template("bootstrap")
 app.config["suppress_callback_exceptions"] = True
@@ -69,10 +71,10 @@ app.layout = html.Div([
     ]),
     dcc.Location(id='url', refresh=False),
     html.Div(id="page-content"),
-    dcc.Interval(id='interval', interval=1000 * 12, n_intervals=0),
-    dcc.Interval(id='interval-medium', interval=1000 * 5, n_intervals=0),
-    dcc.Interval(id='interval-quick', interval=1000 * 3, n_intervals=0),
-    dcc.Interval(id="interval-graph-update", interval = 1000*2, n_intervals=0),
+    dcc.Interval(id='interval', interval=1000 * 25, n_intervals=0),
+    dcc.Interval(id='interval-medium', interval=1000 * 15, n_intervals=0),
+    dcc.Interval(id='interval-quick', interval=1000 * 10, n_intervals=0),
+    dcc.Interval(id="interval-graph-update", interval = 1000*5, n_intervals=0),
 
     # Bottom bar
     html.Footer([
@@ -342,7 +344,6 @@ def update_data(n_clicks, slider_range):
         today = datetime.now().strftime('%y-%m-%d')
         path = "/eos/user/j/jcapotor/PDHDdata/"
         ref = "40525"
-        FROM_CERN = True
 
         pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
 
@@ -453,7 +454,6 @@ def update_data(n_intervals):
     today = datetime.now().strftime('%y-%m-%d')
     path = "/eos/user/j/jcapotor/PDHDdata/"
     ref = "40525"
-    FROM_CERN = True
 
     pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
 
@@ -555,8 +555,6 @@ def update_data(n_intervals):
                         sep=";", decimal=",", header=0)
 
     sensors = mapping.head(72)["SC-ID"].values
-
-    FROM_CERN = True
 
     pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
 
@@ -683,7 +681,6 @@ def update_data(n_intervals):
     today = datetime.now().strftime('%y-%m-%d')
     path = "/eos/user/j/jcapotor/PDHDdata/"
     ref = "40525"
-    FROM_CERN = True
 
     pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
 
@@ -759,7 +756,6 @@ def update_data(n_intervals):
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
     ref = "40525"
-    FROM_CERN = True
 
     integrationTime = 60  # seconds
     mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
@@ -824,7 +820,6 @@ def update_data(n_intervals):
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
     ref = "40525"
-    FROM_CERN = True
 
 
     integrationTime = 60  # seconds
@@ -882,8 +877,6 @@ def update_data(n_intervals):
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
     ref = "48733"
-    FROM_CERN = True
-
     pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
 
     try:
@@ -974,7 +967,6 @@ def update_data(n_intervals):
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
     ref = "40525"
-    FROM_CERN = True
 
     pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
 
@@ -1070,7 +1062,6 @@ def update_data_real_time(n_intervals, existing_figure):
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
     ref = "40525"
-    FROM_CERN = True
 
     pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
 
@@ -1177,7 +1168,6 @@ def update_data(n_intervals):
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
     ref = "37131"
-    FROM_CERN = True
 
     pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
 
@@ -1282,7 +1272,6 @@ def update_data(n_intervals):
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
     ref = "40525"
-    FROM_CERN = True
     sensors = [f"TE0{number}" for number in range(265, 302)]
 
     pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"

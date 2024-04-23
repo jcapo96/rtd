@@ -5,6 +5,7 @@ from datetime import datetime
 
 def convert_date_format(date_string):
     # Split the date string by '-'
+    # print(date_string)
     parts = date_string.split('-')
 
     # Reorder the parts
@@ -27,7 +28,8 @@ def accessViaPage(detector, elementId, startDay, endDay, startTime, endTime):
     Returns:
         str: The URL to access the data via a web page.
     """
-
+    if endDay is None:
+        endDay = startDay
     startDay = convert_date_format(startDay)
     endDay   = convert_date_format(endDay)
     # Adjust endDay if startDay and endDay are on the same date
@@ -35,7 +37,6 @@ def accessViaPage(detector, elementId, startDay, endDay, startTime, endTime):
         endDay = datetime.strptime(endDay, '%d-%m-%Y')
         endDay += timedelta(days=1)
         endDay = endDay.strftime('%d-%m-%Y')
-
     # Construct the URL based on the detector
     if detector.lower() == "np04":
         url = 'https://np04-slow-control.web.cern.ch/np04-slow-control/app/php-db-conn/histogramrange.conn.php?'
@@ -46,7 +47,6 @@ def accessViaPage(detector, elementId, startDay, endDay, startTime, endTime):
         else:
             url += '&start=' + startDay
             url += '&end=' + endDay
-
     return url
 
 def accessViaCache(elementId, startDay, endDay, startTime, endTime):
@@ -109,7 +109,6 @@ def retrieveData(url):
     # Open the URL and read the response
     rr = urllib.request.urlopen(url)
     r = rr.read()
-
     # Parse the response as JSON
     res = json.loads(r)
 

@@ -213,7 +213,8 @@ class MakeData():
         with tqdm.tqdm(total=len(self.selection)*len(self.ticks)) as pbar:
             for ntick, tick in enumerate(self.ticks):
                 for idx, key in enumerate(container.keys()):
-                    index = int(key.split("TE")[1]) - 1
+                    # index = int(key.split("TE")[1]) - 1
+                    index = idx
                     clockData = container[key]["access"].data.loc[(container[key]["access"].data["epochTime"] >= tick) & (container[key]["access"].data["epochTime"] < tick+self.clockTick)]
                     y[index] = container[key]["Y"]
                     name[index] = container[key]["name"]
