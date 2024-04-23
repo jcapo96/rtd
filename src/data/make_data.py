@@ -1,4 +1,4 @@
-import ROOT, os, array, tqdm, json
+import os, array, tqdm, json
 from datetime import datetime, timedelta
 from src.data.retrieveData import access
 import pandas as pd
