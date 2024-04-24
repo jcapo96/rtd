@@ -20,7 +20,7 @@ import pandas as pd
 import numpy as np
 import dash_bootstrap_components as dbc
 
-FROM_CERN = False
+FROM_CERN = True
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], prevent_initial_callbacks=True)
 load_figure_template("bootstrap")
@@ -1366,4 +1366,4 @@ def update_data(n_intervals):
     return figure
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run(host='0.0.0.0', port=8050, debug=True)
