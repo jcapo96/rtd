@@ -96,6 +96,21 @@ def display_page(pathname):
         return html.Div(style={'background-color': '#f2f2f2'}, children=[
                 html.Div(style={'margin-top': '20px', "background-color":'#f3f3f3'}),  # Add separation between H1 and top navbar
                 html.H1('Temperature Status: Overview', style={'text-align': 'center', 'color': 'black', 'font-size': '24px'}),
+
+                html.Div([
+                    html.H1('Stabilization Plot', style={'text-align': 'center', 'color': 'black', 'font-size': '24px'}),
+                    dcc.Graph(
+                        id='diff',
+                        config={'displayModeBar': False},
+                        figure={
+                            'layout': {
+                                'annotations': [{'text': 'Loading...', 'x': 0.5, 'y': 0.5, 'showarrow': False}],
+                                'title': '... Loading temperature graph ...'
+                            }
+                        }
+                    ),
+                ], style={'width': '96%', 'display': 'inline-block', 'padding': '20px', 'vertical-align': 'top'}),
+
                 # Left div with the first graph
                 html.Div([
                     html.Div([
@@ -443,6 +458,116 @@ def update_data(n_clicks, slider_range):
             title_x=0.5,
         )
         return figure
+
+@app.callback(
+    Output('diff', 'figure'),
+    [Input('interval', 'n_intervals')]
+)
+def update_data(n_intervals):
+    system = "tgrad"
+    allBool = False
+    today = datetime.now().strftime('%y-%m-%d')
+    path = "/eos/user/j/jcapotor/PDHDdata/"
+    ref = "40525"
+    mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
+                            sep=";", decimal=",", header=0)
+
+    sensors = mapping.head(96)["SC-ID"].values
+
+    pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
+
+    integrationTime = 60  # seconds
+
+    try:
+        with open(f"{pathToCalib}/LARTGRAD_TREE.json") as f:
+            caldata = json.load(f)[ref]
+
+        with open(f"{pathToCalib}/LARTGRAD_TREE_rcal.json") as f:
+            rcaldata = json.load(f)[ref]
+
+        with open(f"{pathToCalib}/CERNRCalib.json") as f:
+            crcaldata = json.load(f)
+    except:
+        print(f"You don't have the access rights to the calibration data: /eos/user/j/jcapotor/RTDdata/calib")
+        print(f"Your data will not be corrected, but STILL DISPLAYED in rtd/onlinePlots")
+        print(f"Ask access to Jordi Capó (jcapo@ific.uv.es) to data and change in line 14 on rtd/pdhd/online.py -> pathToCalib='path/to/your/calib/data' ")
+        print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
+        caldata, rcaldata, crcaldata = None, None, None
+
+    mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
+                        sep=";", decimal=",", header=0)
+
+    today = datetime.now()
+    startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
+    endTimeStamp = today.timestamp()
+    if FROM_CERN is True:
+        m = MakeData(detector="np04", all=allBool, sensors=sensors,
+                        startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
+                        clockTick=60,
+                        ref=ref, FROM_CERN=FROM_CERN)
+    elif FROM_CERN is False:
+        m = MakeData(detector="np04", all=allBool, sensors=sensors,
+                        startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        clockTick=60,
+                        ref=ref, FROM_CERN=FROM_CERN)
+    m.getData()
+    y, temp, etemp = [], [], []
+    for name, dict in m.container.items():
+        id = str(int(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0]))
+        if caldata is not None:
+            if id not in caldata.keys():
+                cal = 0
+            elif id in caldata.keys():
+                cal = caldata[id][0]*1e-3
+        elif caldata is None:
+            cal = 0
+        if rcaldata is not None:
+            if id not in rcaldata.keys():
+                rcal = 0
+            elif id in rcaldata.keys():
+                rcal = rcaldata[id][0]*1e-3
+        elif rcaldata is None:
+            rcal = 0
+        if crcaldata is not None:
+            if f"s{int(name.split('TE')[1])}" in crcaldata.keys():
+                crcal = np.mean(crcaldata[f"s{int(name.split('TE')[1])}"])*1e-3
+            else:
+                crcal = 0
+        elif crcaldata is None:
+            crcal = 0
+        df = dict["access"].data
+        dataFrame = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
+        if (dataFrame["temp"].mean() - cal - rcal - crcal) > 88:
+            continue
+        if (dataFrame["temp"].mean() - cal - rcal - crcal) < 0:
+            continue
+        dataFrame2 = df.loc[(df["epochTime"]>(today - timedelta(seconds=60*15)).timestamp())&(df["epochTime"]<endTimeStamp)]
+        if abs(dataFrame["temp"].mean() - dataFrame2["temp"].mean()) > 0.02:
+            continue
+        y.append(name)
+        temp.append(dataFrame["temp"].mean() - dataFrame2["temp"].mean())
+        # etemp.append(np.sqrt(dataFrame["temp"].std()**2 + dataFrame2["temp"].std()**2))
+        etemp.append(0.003)
+    figure = px.scatter(x=y, y=temp, error_y=etemp, title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
+    figure.update_layout(
+        xaxis_title="Height (m)",
+        yaxis_title="Temperature (K)",
+        font = {
+            "family": "Arial, sans-serif",
+            "size": 14,
+            "color": "black"
+        },
+        title_font = {
+            "family": "Arial, sans-serif",
+            "size": 20,
+            "color": "black"
+        },
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        title_x=0.5,
+    )
+    return figure
 
 @app.callback(
     Output('tgrad', 'figure'),

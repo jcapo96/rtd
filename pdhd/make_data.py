@@ -17,7 +17,7 @@ ref = "40525"
 
 dates = []
 today = datetime.now()
-start_date = datetime(today.year, 3, 1)
+start_date = datetime(today.year, 4, 19)
 end_date = datetime.now()
 while start_date <= end_date:
     dates.append(start_date)
@@ -36,7 +36,7 @@ for date in dates:
                     startDay=date.strftime('%Y-%m-%d'),
                     clockTick=60,
                     pathToSaveData=F"/eos/user/j/jcapotor/PDHDdata/{system}/{date.strftime('%B')}{date.year}/",
-                    ref=ref, FROM_CERN=False)
+                    ref=ref, FROM_CERN=True)
     m.make()
 
 # date = start_date
