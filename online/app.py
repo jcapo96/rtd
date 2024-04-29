@@ -360,7 +360,7 @@ def update_data(n_clicks, slider_range):
         path = "/eos/user/j/jcapotor/PDHDdata/"
         ref = "40525"
 
-        pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
+        pathToCalib = "/afs/cern.ch/user/j/jcapotor/public/calib"
 
         integrationTime = 60  # seconds
 
@@ -474,7 +474,7 @@ def update_data(n_intervals):
 
     sensors = mapping.head(96)["SC-ID"].values
 
-    pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
+    pathToCalib = "/afs/cern.ch/user/j/jcapotor/public/calib"
 
     integrationTime = 60  # seconds
 
@@ -580,7 +580,7 @@ def update_data(n_intervals):
     path = "/eos/user/j/jcapotor/PDHDdata/"
     ref = "40525"
 
-    pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
+    pathToCalib = "/afs/cern.ch/user/j/jcapotor/public/calib"
 
     integrationTime = 60  # seconds
 
@@ -681,7 +681,7 @@ def update_data(n_intervals):
 
     sensors = mapping.head(72)["SC-ID"].values
 
-    pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
+    pathToCalib = "/afs/cern.ch/user/j/jcapotor/public/calib"
 
     integrationTime = 60  # seconds
 
@@ -807,7 +807,7 @@ def update_data(n_intervals):
     path = "/eos/user/j/jcapotor/PDHDdata/"
     ref = "40525"
 
-    pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
+    pathToCalib = "/afs/cern.ch/user/j/jcapotor/public/calib"
 
     integrationTime = 60  # seconds
 
@@ -1002,7 +1002,7 @@ def update_data(n_intervals):
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
     ref = "48733"
-    pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
+    pathToCalib = "/afs/cern.ch/user/j/jcapotor/public/calib"
 
     try:
         with open(f"{pathToCalib}/GA-PM-PP_TREE.json") as f:
@@ -1093,7 +1093,7 @@ def update_data(n_intervals):
     today = datetime.now().strftime('%y-%m-%d')
     ref = "40525"
 
-    pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
+    pathToCalib = "/afs/cern.ch/user/j/jcapotor/public/calib"
 
     try:
         with open(f"{pathToCalib}/GA-PM-PP_TREE.json") as f:
@@ -1188,7 +1188,7 @@ def update_data_real_time(n_intervals, existing_figure):
     today = datetime.now().strftime('%y-%m-%d')
     ref = "40525"
 
-    pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
+    pathToCalib = "/afs/cern.ch/user/j/jcapotor/public/calib"
 
     try:
         with open(f"{pathToCalib}/GA-PM-PP_TREE.json") as f:
@@ -1294,7 +1294,7 @@ def update_data(n_intervals):
     today = datetime.now().strftime('%y-%m-%d')
     ref = "37131"
 
-    pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
+    pathToCalib = "/afs/cern.ch/user/j/jcapotor/public/calib"
 
     try:
         with open(f"{pathToCalib}/PIPE_TREE.json") as f:
@@ -1399,7 +1399,7 @@ def update_data(n_intervals):
     ref = "40525"
     sensors = [f"TE0{number}" for number in range(265, 302)]
 
-    pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
+    pathToCalib = "/afs/cern.ch/user/j/jcapotor/public/calib"
 
     try:
         with open(f"{pathToCalib}/GA-PM-PP_TREE.json") as f:
