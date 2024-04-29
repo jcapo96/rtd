@@ -30,6 +30,8 @@ empty_data = {'Height (m)': [], 'Temperature (K)': []}
 df_empty = pd.DataFrame(empty_data)
 current_time = "... Initializing ..."
 
+pathToCalib = "/afs/cern.ch/user/j/jcapotor/public/calib"
+
 app.layout = html.Div([
     html.Nav(className='navbar navbar-expand-lg navbar-light bg-light', children=[
         html.Div(className='container', children=[
@@ -48,6 +50,9 @@ app.layout = html.Div([
                     ]),
                     html.Li(className='nav-item', style={"margin-right": "40px"}, children=[
                         html.A(className='nav-link', href='/3d', children='3D'),
+                    ]),
+                    html.Li(className='nav-item', style={"margin-right": "40px"}, children=[
+                        html.A(className='nav-link', href='/poff', children='Pumps-Off'),
                     ]),
                     html.Li(className='nav-item dropdown pages-menu', children=[
                         dbc.DropdownMenu(
@@ -71,10 +76,10 @@ app.layout = html.Div([
     ]),
     dcc.Location(id='url', refresh=False),
     html.Div(id="page-content"),
-    dcc.Interval(id='interval', interval=1000 * 25, n_intervals=0),
-    dcc.Interval(id='interval-medium', interval=1000 * 15, n_intervals=0),
-    dcc.Interval(id='interval-quick', interval=1000 * 10, n_intervals=0),
-    dcc.Interval(id="interval-graph-update", interval = 1000*5, n_intervals=0),
+    dcc.Interval(id='interval', interval=1000 * 10, n_intervals=0),
+    dcc.Interval(id='interval-medium', interval=1000 * 8, n_intervals=0),
+    dcc.Interval(id='interval-quick', interval=1000 * 5, n_intervals=0),
+    dcc.Interval(id="interval-graph-update", interval = 1000*3, n_intervals=0),
 
     # Bottom bar
     html.Footer([
@@ -339,6 +344,16 @@ def display_page(pathname):
                 value=[0.0, 8.0]
             ),
         ])
+    elif pathname == '/poff':
+        return html.Div([
+            html.H4('$\Delta$T = $T_NOW - T_15$', style={'text-align': 'center'}),
+            dcc.Graph(id="diff",
+                    figure={
+                        'layout': {
+                            'title': 'Click Update button'
+                        }
+                    }),
+        ])
     else:
         # Return a default page or handle other paths
         return html.Div([
@@ -360,7 +375,7 @@ def update_data(n_clicks, slider_range):
         path = "/eos/user/j/jcapotor/PDHDdata/"
         ref = "40525"
 
-        pathToCalib = "/afs/cern.ch/user/j/jcapotor/public/calib"
+
 
         integrationTime = 60  # seconds
 
@@ -464,35 +479,15 @@ def update_data(n_clicks, slider_range):
     [Input('interval', 'n_intervals')]
 )
 def update_data(n_intervals):
-    system = "tgrad"
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
-    path = "/eos/user/j/jcapotor/PDHDdata/"
     ref = "40525"
     mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
                             sep=";", decimal=",", header=0)
 
     sensors = mapping.head(96)["SC-ID"].values
 
-    pathToCalib = "/afs/cern.ch/user/j/jcapotor/public/calib"
-
     integrationTime = 60  # seconds
-
-    try:
-        with open(f"{pathToCalib}/LARTGRAD_TREE.json") as f:
-            caldata = json.load(f)[ref]
-
-        with open(f"{pathToCalib}/LARTGRAD_TREE_rcal.json") as f:
-            rcaldata = json.load(f)[ref]
-
-        with open(f"{pathToCalib}/CERNRCalib.json") as f:
-            crcaldata = json.load(f)
-    except:
-        print(f"You don't have the access rights to the calibration data: /eos/user/j/jcapotor/RTDdata/calib")
-        print(f"Your data will not be corrected, but STILL DISPLAYED in rtd/onlinePlots")
-        print(f"Ask access to Jordi Capó (jcapo@ific.uv.es) to data and change in line 14 on rtd/pdhd/online.py -> pathToCalib='path/to/your/calib/data' ")
-        print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
-        caldata, rcaldata, crcaldata = None, None, None
 
     mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
                         sep=";", decimal=",", header=0)
@@ -514,33 +509,11 @@ def update_data(n_intervals):
     m.getData()
     y, temp, etemp = [], [], []
     for name, dict in m.container.items():
-        id = str(int(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0]))
-        if caldata is not None:
-            if id not in caldata.keys():
-                cal = 0
-            elif id in caldata.keys():
-                cal = caldata[id][0]*1e-3
-        elif caldata is None:
-            cal = 0
-        if rcaldata is not None:
-            if id not in rcaldata.keys():
-                rcal = 0
-            elif id in rcaldata.keys():
-                rcal = rcaldata[id][0]*1e-3
-        elif rcaldata is None:
-            rcal = 0
-        if crcaldata is not None:
-            if f"s{int(name.split('TE')[1])}" in crcaldata.keys():
-                crcal = np.mean(crcaldata[f"s{int(name.split('TE')[1])}"])*1e-3
-            else:
-                crcal = 0
-        elif crcaldata is None:
-            crcal = 0
         df = dict["access"].data
         dataFrame = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
-        if (dataFrame["temp"].mean() - cal - rcal - crcal) > 88:
+        if (dataFrame["temp"].mean()) > 88:
             continue
-        if (dataFrame["temp"].mean() - cal - rcal - crcal) < 0:
+        if (dataFrame["temp"].mean()) < 0:
             continue
         dataFrame2 = df.loc[(df["epochTime"]>(today - timedelta(seconds=60*15)).timestamp())&(df["epochTime"]<endTimeStamp)]
         if abs(dataFrame["temp"].mean() - dataFrame2["temp"].mean()) > 0.02:
@@ -548,8 +521,9 @@ def update_data(n_intervals):
         y.append(name)
         temp.append(dataFrame["temp"].mean() - dataFrame2["temp"].mean())
         # etemp.append(np.sqrt(dataFrame["temp"].std()**2 + dataFrame2["temp"].std()**2))
-        etemp.append(0.003)
-    figure = px.scatter(x=y, y=temp, error_y=etemp, title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
+        etemp.append(np.sqrt(dataFrame["temp"].std()**2 + dataFrame2["temp"].std()))
+    figure = px.scatter(x=y, y=temp, title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
+    figure.add_trace(go.Histogram(x=temp, orientation='h', name='Histogram'))
     figure.update_layout(
         xaxis_title="Height (m)",
         yaxis_title="Temperature (K)",
@@ -567,6 +541,7 @@ def update_data(n_intervals):
         paper_bgcolor='rgba(0,0,0,0)',
         title_x=0.5,
     )
+    figure.update_yaxes(range=[-0.005, 0.005])
     return figure
 
 @app.callback(
@@ -580,7 +555,7 @@ def update_data(n_intervals):
     path = "/eos/user/j/jcapotor/PDHDdata/"
     ref = "40525"
 
-    pathToCalib = "/afs/cern.ch/user/j/jcapotor/public/calib"
+
 
     integrationTime = 60  # seconds
 
@@ -681,7 +656,7 @@ def update_data(n_intervals):
 
     sensors = mapping.head(72)["SC-ID"].values
 
-    pathToCalib = "/afs/cern.ch/user/j/jcapotor/public/calib"
+
 
     integrationTime = 60  # seconds
 
@@ -745,8 +720,8 @@ def update_data(n_intervals):
             crcal = 0
         df = dict["access"].data
         df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
-        # if (df["temp"].mean() - cal - rcal - crcal) > 88:
-        #     continue
+        if (df["temp"].mean() - cal - rcal - crcal) > 88:
+            continue
 
         y[dict["SYSTEM"]].append(dict["Y"])
         temp[dict["SYSTEM"]].append(df["temp"].mean() - cal - rcal - crcal)
@@ -807,7 +782,7 @@ def update_data(n_intervals):
     path = "/eos/user/j/jcapotor/PDHDdata/"
     ref = "40525"
 
-    pathToCalib = "/afs/cern.ch/user/j/jcapotor/public/calib"
+
 
     integrationTime = 60  # seconds
 
@@ -1002,7 +977,7 @@ def update_data(n_intervals):
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
     ref = "48733"
-    pathToCalib = "/afs/cern.ch/user/j/jcapotor/public/calib"
+
 
     try:
         with open(f"{pathToCalib}/GA-PM-PP_TREE.json") as f:
@@ -1093,7 +1068,7 @@ def update_data(n_intervals):
     today = datetime.now().strftime('%y-%m-%d')
     ref = "40525"
 
-    pathToCalib = "/afs/cern.ch/user/j/jcapotor/public/calib"
+
 
     try:
         with open(f"{pathToCalib}/GA-PM-PP_TREE.json") as f:
@@ -1188,7 +1163,7 @@ def update_data_real_time(n_intervals, existing_figure):
     today = datetime.now().strftime('%y-%m-%d')
     ref = "40525"
 
-    pathToCalib = "/afs/cern.ch/user/j/jcapotor/public/calib"
+
 
     try:
         with open(f"{pathToCalib}/GA-PM-PP_TREE.json") as f:
@@ -1294,7 +1269,7 @@ def update_data(n_intervals):
     today = datetime.now().strftime('%y-%m-%d')
     ref = "37131"
 
-    pathToCalib = "/afs/cern.ch/user/j/jcapotor/public/calib"
+
 
     try:
         with open(f"{pathToCalib}/PIPE_TREE.json") as f:
@@ -1399,7 +1374,7 @@ def update_data(n_intervals):
     ref = "40525"
     sensors = [f"TE0{number}" for number in range(265, 302)]
 
-    pathToCalib = "/afs/cern.ch/user/j/jcapotor/public/calib"
+
 
     try:
         with open(f"{pathToCalib}/GA-PM-PP_TREE.json") as f:
