@@ -39,9 +39,13 @@ treePath = 0
 calibFileNameTGrad = "LARTGRAD_TREE"
 
 calibFileName = "POFF_2024-04-30T19:00:00_2024-04-30T20:00:00" #here use the name of the pumps-off calibration you want to use
+# calibFileName = None
 
-with open(f"{pathToCalib}/{calibFileName}.json") as f:
-    calpoff = json.load(f)[ref]
+try:
+    with open(f"{pathToCalib}/{calibFileName}.json") as f:
+        calpoff = json.load(f)[ref]
+except:
+    calpoff = None
 
 app.layout = html.Div([
     html.Nav(className='navbar navbar-expand-lg navbar-light bg-light', children=[
@@ -721,7 +725,6 @@ def update_data(n_intervals):
         40004, 40005, 40006, 40007, 40008, 40009, 40010, 40011, 40012, 40013, 40014, 40015, 40016,
         40017, 40018, 40019, 40020, 40021, 40022, 40023
     ]
-
 
     integrationTime = 60  # seconds
 
