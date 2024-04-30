@@ -31,6 +31,8 @@ df_empty = pd.DataFrame(empty_data)
 current_time = "... Initializing ..."
 
 pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
+mapping = pd.read_csv(f"{current_directory}/src/data/mapping/baseline_pdhd_mapping.csv",
+                        sep=",", decimal=".", header=0)
 
 app.layout = html.Div([
     html.Nav(className='navbar navbar-expand-lg navbar-light bg-light', children=[
@@ -401,8 +403,6 @@ def update_data(n_clicks, slider_range):
             print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
             caldata, rcaldata, crcaldata = None, None, None
 
-        mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
-                            sep=";", decimal=",", header=0)
         sensors = mapping.head(100)["SC-ID"].values
 
         today = datetime.now()
@@ -488,15 +488,10 @@ def update_data(n_intervals):
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
     ref = "40525"
-    mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
-                            sep=";", decimal=",", header=0)
 
     sensors = mapping.head(96)["SC-ID"].values
 
     integrationTime = 60  # seconds
-
-    mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
-                        sep=";", decimal=",", header=0)
 
     today = datetime.now()
     startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
@@ -558,8 +553,6 @@ def update_data_real_time(n_intervals, existing_figure):
     today = datetime.now().strftime('%y-%m-%d')
     ref = "40525"
 
-    mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
-                        sep=";", decimal=",", header=0)
     sensors = mapping.head(96)["SC-ID"].values
 
     integrationTime = 60  # seconds
@@ -653,9 +646,6 @@ def update_data(n_intervals):
         print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
         caldata, rcaldata, crcaldata = None, None, None
 
-    mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
-                        sep=";", decimal=",", header=0)
-
     today = datetime.now()
     startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
     endTimeStamp = today.timestamp()
@@ -729,9 +719,6 @@ def update_data(n_intervals):
     path = "/eos/user/j/jcapotor/PDHDdata/"
     ref = "40525"
 
-    mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
-                        sep=";", decimal=",", header=0)
-
     sensors = mapping.head(72)["SC-ID"].values
 
 
@@ -798,8 +785,8 @@ def update_data(n_intervals):
             crcal = 0
         df = dict["access"].data
         df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
-        if (df["temp"].mean() - cal - rcal - crcal) > 88:
-            continue
+        # if (df["temp"].mean() - cal - rcal - crcal) > 88:
+        #     continue
 
         y[dict["SYSTEM"]].append(dict["Y"])
         temp[dict["SYSTEM"]].append(df["temp"].mean() - cal - rcal - crcal)
@@ -880,9 +867,6 @@ def update_data(n_intervals):
         print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
         caldata, rcaldata, crcaldata = None, None, None
 
-    mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
-                        sep=";", decimal=",", header=0)
-
     today = datetime.now()
     startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
     endTimeStamp = today.timestamp()
@@ -936,8 +920,7 @@ def update_data(n_intervals):
     ref = "40525"
 
     integrationTime = 60  # seconds
-    mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
-                        sep=";", decimal=",", header=0)
+
     today = datetime.now()
     startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
     endTimeStamp = today.timestamp()
@@ -1070,9 +1053,6 @@ def update_data(n_intervals):
         print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
         caldata, rcaldata, crcaldata = None, None, None
 
-    mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
-                        sep=";", decimal=",", header=0)
-
     integrationTime = 60  # seconds
 
     today = datetime.now()
@@ -1160,9 +1140,6 @@ def update_data(n_intervals):
         print(f"Ask access to Jordi Capó (jcapo@ific.uv.es) to data and change in line 14 on rtd/pdhd/online.py -> pathToCalib='path/to/your/calib/data' ")
         print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
         caldata, rcaldata, crcaldata = None, None, None
-
-    mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
-                        sep=";", decimal=",", header=0)
 
     integrationTime = 60  # seconds
 
@@ -1255,9 +1232,6 @@ def update_data_real_time(n_intervals, existing_figure):
         print(f"Ask access to Jordi Capó (jcapo@ific.uv.es) to data and change in line 14 on rtd/pdhd/online.py -> pathToCalib='path/to/your/calib/data' ")
         print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
         caldata, rcaldata, crcaldata = None, None, None
-
-    mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
-                        sep=";", decimal=",", header=0)
 
     integrationTime = 60  # seconds
 
@@ -1362,9 +1336,6 @@ def update_data(n_intervals):
         print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
         caldata, rcaldata, crcaldata = None, None, None
 
-    mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
-                        sep=";", decimal=",", header=0)
-
     integrationTime = 60  # seconds
 
     today = datetime.now()
@@ -1467,9 +1438,6 @@ def update_data(n_intervals):
         print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
         print("\n")
         caldata, rcaldata, crcaldata = None, None, None
-
-    mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
-                        sep=";", decimal=",", header=0)
 
     integrationTime = 60*2  # seconds
 

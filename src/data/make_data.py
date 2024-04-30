@@ -38,8 +38,8 @@ class MakeData():
         """
         path = os.path.dirname(os.path.abspath(__file__))
         if int(self.startDay.split("-")[0]) > 2023:
-            self.mapping = pd.read_csv(f"{path}/mapping/pdhd_mapping.csv",
-                            sep=";", decimal=",", header=0)
+            self.mapping = pd.read_csv(f"{path}/mapping/baseline_pdhd_mapping.csv",
+                            sep=",", decimal=".", header=0)
         elif int(self.startDay.split("-")[0]) < 2023:
             self.mapping = pd.read_csv(f"{path}/mapping/pdsp_mapping.csv",
                                        sep=";", decimal=".", header=0)
