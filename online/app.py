@@ -34,7 +34,14 @@ pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
 mapping = pd.read_csv(f"{current_directory}/src/data/mapping/baseline_pdhd_mapping.csv",
                         sep=",", decimal=".", header=0)
 ref = "40533"
-treePath = 4
+treePath = 0
+
+calibFileNameTGrad = "LARTGRAD_TREE"
+
+calibFileName = "POFF_2024-04-30T19:00:00_2024-04-30T20:00:00" #here use the name of the pumps-off calibration you want to use
+
+with open(f"{pathToCalib}/{calibFileName}.json") as f:
+    calpoff = json.load(f)[ref]
 
 app.layout = html.Div([
     html.Nav(className='navbar navbar-expand-lg navbar-light bg-light', children=[
@@ -376,7 +383,6 @@ def display_page(pathname):
     [Input('button', 'n_clicks'),
      Input("range-slider", "value")]
 )
-
 def update_data(n_clicks, slider_range):
     if n_clicks:
         system = "tgrad"
@@ -384,26 +390,19 @@ def update_data(n_clicks, slider_range):
         today = datetime.now().strftime('%y-%m-%d')
         path = "/eos/user/j/jcapotor/PDHDdata/"
 
-
-
-
         integrationTime = 60  # seconds
 
         try:
-            with open(f"{pathToCalib}/LARTGRAD_TREE.json") as f:
+            with open(f"{pathToCalib}/{calibFileName}.json") as f:
                 caldata = json.load(f)[ref]
 
-            with open(f"{pathToCalib}/LARTGRAD_TREE_rcal.json") as f:
+            with open(f"{pathToCalib}/{calibFileName}_rcal.json") as f:
                 rcaldata = json.load(f)[ref]
 
             with open(f"{pathToCalib}/CERNRCalib.json") as f:
                 crcaldata = json.load(f)
         except:
-            print(f"You don't have the access rights to the calibration data: /eos/user/j/jcapotor/RTDdata/calib")
-            print(f"Your data will not be corrected, but STILL DISPLAYED in rtd/onlinePlots")
-            print(f"Ask access to Jordi Capó (jcapo@ific.uv.es) to data and change in line 14 on rtd/pdhd/online.py -> pathToCalib='path/to/your/calib/data' ")
-            print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
-            caldata, rcaldata, crcaldata = None, None, None
+            caldata, rcaldata, crcaldata = calpoff, None, None
 
         sensors = mapping.head(100)["SC-ID"].values
 
@@ -625,28 +624,23 @@ def update_data(n_intervals):
     system = "tgrad"
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
-    path = "/eos/user/j/jcapotor/PDHDdata/"
-
-
-
 
     integrationTime = 60  # seconds
 
     try:
-        with open(f"{pathToCalib}/LARTGRAD_TREE.json") as f:
-            caldata = json.load(f)[ref]
+        if calpoff is None:
+            with open(f"{pathToCalib}/{calibFileNameTGrad}.json") as f:
+                caldata = json.load(f)[ref]
 
-        with open(f"{pathToCalib}/LARTGRAD_TREE_rcal.json") as f:
-            rcaldata = json.load(f)[ref]
+            with open(f"{pathToCalib}/{calibFileNameTGrad}_rcal.json") as f:
+                rcaldata = json.load(f)[ref]
 
-        with open(f"{pathToCalib}/CERNRCalib.json") as f:
-            crcaldata = json.load(f)
+            with open(f"{pathToCalib}/CERNRCalib.json") as f:
+                crcaldata = json.load(f)
+        elif calpoff is not None:
+            caldta, rcaldata, crcaldata = calpoff, None, None
     except:
-        print(f"You don't have the access rights to the calibration data: /eos/user/j/jcapotor/RTDdata/calib")
-        print(f"Your data will not be corrected, but STILL DISPLAYED in rtd/onlinePlots")
-        print(f"Ask access to Jordi Capó (jcapo@ific.uv.es) to data and change in line 14 on rtd/pdhd/online.py -> pathToCalib='path/to/your/calib/data' ")
-        print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
-        caldata, rcaldata, crcaldata = None, None, None
+        caldata, rcaldata, crcaldata = calpoff, None, None
 
     today = datetime.now()
     startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
@@ -670,14 +664,14 @@ def update_data(n_intervals):
             if id not in caldata.keys():
                 cal = 0
             elif id in caldata.keys():
-                cal = caldata [id][treePath]*1e-3
+                cal = caldata[id][treePath]*1e-3
         elif caldata is None:
             cal = 0
         if rcaldata is not None:
             if id not in rcaldata.keys():
                 rcal = 0
             elif id in rcaldata.keys():
-                rcal = rcaldata [id][treePath]*1e-3
+                rcal = rcaldata[id][treePath]*1e-3
         elif rcaldata is None:
             rcal = 0
         if crcaldata is not None:
@@ -718,27 +712,25 @@ def update_data(n_intervals):
 def update_data(n_intervals):
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
-    path = "/eos/user/j/jcapotor/PDHDdata/"
 
     sensors = mapping.head(72)["SC-ID"].values
 
     integrationTime = 60  # seconds
 
     try:
-        with open(f"{pathToCalib}/LARTGRAD_TREE.json") as f:
-            caldata = json.load(f)[ref]
+        if calpoff is None:
+            with open(f"{pathToCalib}/{calibFileNameTGrad}.json") as f:
+                caldata = json.load(f)[ref]
 
-        with open(f"{pathToCalib}/LARTGRAD_TREE_rcal.json") as f:
-            rcaldata = json.load(f)[ref]
+            with open(f"{pathToCalib}/{calibFileNameTGrad}_rcal.json") as f:
+                rcaldata = json.load(f)[ref]
 
-        with open(f"{pathToCalib}/CERNRCalib.json") as f:
-            crcaldata = json.load(f)
+            with open(f"{pathToCalib}/CERNRCalib.json") as f:
+                crcaldata = json.load(f)
+        elif calpoff is not None:
+            caldata, rcaldata, crcaldata = calpoff, None, None
     except:
-        print(f"You don't have the access rights to the calibration data: /eos/user/j/jcapotor/RTDdata/calib")
-        print(f"Your data will not be corrected, but STILL DISPLAYED in rtd/onlinePlots")
-        print(f"Ask access to Jordi Capó (jcapo@ific.uv.es) to data and change in line 14 on rtd/pdhd/online.py -> pathToCalib='path/to/your/calib/data' ")
-        print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
-        caldata, rcaldata, crcaldata = None, None, None
+        caldata, rcaldata, crcaldata = calpoff, None, None
 
     today = datetime.now()
     startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
@@ -843,28 +835,23 @@ def update_data(n_intervals):
     system = "tgrad"
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
-    path = "/eos/user/j/jcapotor/PDHDdata/"
-
-
-
 
     integrationTime = 60  # seconds
 
     try:
-        with open(f"{pathToCalib}/LARTGRAD_TREE.json") as f:
-            caldata = json.load(f)[ref]
+        if calpoff is None:
+            with open(f"{pathToCalib}/{calibFileNameTGrad}.json") as f:
+                caldata = json.load(f)[ref]
 
-        with open(f"{pathToCalib}/LARTGRAD_TREE_rcal.json") as f:
-            rcaldata = json.load(f)[ref]
+            with open(f"{pathToCalib}/{calibFileNameTGrad}_rcal.json") as f:
+                rcaldata = json.load(f)[ref]
 
-        with open(f"{pathToCalib}/CERNRCalib.json") as f:
-            crcaldata = json.load(f)
+            with open(f"{pathToCalib}/CERNRCalib.json") as f:
+                crcaldata = json.load(f)
+        elif calpoff is not None:
+            caldta, rcaldata, crcaldata = calpoff, None, None
     except:
-        print(f"You don't have the access rights to the calibration data: /eos/user/j/jcapotor/RTDdata/calib")
-        print(f"Your data will not be corrected, but STILL DISPLAYED in rtd/onlinePlots")
-        print(f"Ask access to Jordi Capó (jcapo@ific.uv.es) to data and change in line 14 on rtd/pdhd/online.py -> pathToCalib='path/to/your/calib/data' ")
-        print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
-        caldata, rcaldata, crcaldata = None, None, None
+        caldata, rcaldata, crcaldata = calpoff, None, None
 
     today = datetime.now()
     startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
@@ -917,8 +904,19 @@ def update_data(n_intervals):
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
 
-
     integrationTime = 60  # seconds
+
+    try:
+        with open(f"{pathToCalib}/{calibFileName}.json") as f:
+            caldata = json.load(f)[ref]
+
+        with open(f"{pathToCalib}/{calibFileName}_rcal.json") as f:
+            rcaldata = json.load(f)[ref]
+
+        with open(f"{pathToCalib}/CERNRCalib.json") as f:
+            crcaldata = json.load(f)
+    except:
+        caldata, rcaldata, crcaldata = calpoff, None, None
 
     today = datetime.now()
     startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
@@ -937,6 +935,25 @@ def update_data(n_intervals):
     m.getData()
     y, temp, etemp = [[] for i in range(4)], [[] for i in range(4)], [[] for i in range(4)]
     for name, dict in m.container.items():
+        id = str(int(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0]))
+        if caldata is not None:
+            if id not in caldata.keys():
+                cal = 0
+            elif id in caldata.keys():
+                cal = caldata[id][treePath]*1e-3
+        elif caldata is None:
+            cal = 0
+        if rcaldata is not None:
+            if id not in rcaldata.keys():
+                rcal = 0
+            elif id in rcaldata.keys():
+                rcal = rcaldata[id][treePath]*1e-3
+        elif rcaldata is None:
+            rcal = 0
+        if crcaldata is not None:
+            crcal = np.mean(crcaldata[f"s{int(name.split('TE')[1])}"])*1e-3
+        elif crcaldata is None:
+            crcal = 0
         split = mapping.loc[(mapping["SC-ID"]==name)]["NAME"].values[0].split("APA")
         apa = f"{split[0]}{split[1][0]}"
         id = int(split[1][0]) - 1
@@ -944,7 +961,7 @@ def update_data(n_intervals):
         df = dict["access"].data
         df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
         y[id].append(name)
-        temp[id].append(df["temp"].mean())
+        temp[id].append(df["temp"].mean() - cal)
         etemp[id].append(df["temp"].std())
     fig = make_subplots(rows=2, cols=2)
 
@@ -980,7 +997,17 @@ def update_data(n_intervals):
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
 
+    try:
+        with open(f"{pathToCalib}/{calibFileName}.json") as f:
+            caldata = json.load(f)[ref]
 
+        with open(f"{pathToCalib}/{calibFileName}_rcal.json") as f:
+            rcaldata = json.load(f)[ref]
+
+        with open(f"{pathToCalib}/CERNRCalib.json") as f:
+            crcaldata = json.load(f)
+    except:
+        caldata, rcaldata, crcaldata = calpoff, None, None
 
     integrationTime = 60  # seconds
 
@@ -1001,12 +1028,31 @@ def update_data(n_intervals):
     m.getData()
     y, temp, etemp = [], [], []
     for name, dict in m.container.items():
+        id = str(int(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0]))
+        if caldata is not None:
+            if id not in caldata.keys():
+                cal = 0
+            elif id in caldata.keys():
+                cal = caldata[id][treePath]*1e-3
+        elif caldata is None:
+            cal = 0
+        if rcaldata is not None:
+            if id not in rcaldata.keys():
+                rcal = 0
+            elif id in rcaldata.keys():
+                rcal = rcaldata[id][treePath]*1e-3
+        elif rcaldata is None:
+            rcal = 0
+        if crcaldata is not None:
+            crcal = np.mean(crcaldata[f"s{int(name.split('TE')[1])}"])*1e-3
+        elif crcaldata is None:
+            crcal = 0
         df = dict["access"].data
         df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
         if df["temp"].mean() > 88.5:
             continue
         y.append(dict["Y"])
-        temp.append(df["temp"].mean())
+        temp.append(df["temp"].mean() - cal)
         etemp.append(df["temp"].std())
     figure = px.scatter(x=y, y=temp, error_y=etemp, title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
     figure.update_layout(
@@ -1038,19 +1084,17 @@ def update_data(n_intervals):
     today = datetime.now().strftime('%y-%m-%d')
     ref = "48733"
 
-
     try:
-        with open(f"{pathToCalib}/GA-PM-PP_TREE.json") as f:
-            caldata = json.load(f)[ref]
+        if calpoff is None:
+            with open(f"{pathToCalib}/GA-PM-PP_TREE.json") as f:
+                caldata = json.load(f)[ref]
 
-        with open(f"{pathToCalib}/GA-PM-PP_TREE_rcal.json") as f:
-            rcaldata = json.load(f)[ref]
+            with open(f"{pathToCalib}/GA-PM-PP_TREE_rcal.json") as f:
+                rcaldata = json.load(f)[ref]
+        elif calpoff is not None:
+            caldata, rcaldata, crcaldata = calpoff, None, None
     except:
-        print(f"You don't have the access rights to the calibration data: /eos/user/j/jcapotor/RTDdata/calib")
-        print(f"Your data will not be corrected, but STILL DISPLAYED in rtd/onlinePlots")
-        print(f"Ask access to Jordi Capó (jcapo@ific.uv.es) to data and change in line 14 on rtd/pdhd/online.py -> pathToCalib='path/to/your/calib/data' ")
-        print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
-        caldata, rcaldata, crcaldata = None, None, None
+        caldata, rcaldata, crcaldata = calpoff, None, None
 
     integrationTime = 60  # seconds
 
@@ -1124,21 +1168,17 @@ def update_data(n_intervals):
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
 
-
-
-
     try:
-        with open(f"{pathToCalib}/GA-PM-PP_TREE.json") as f:
-            caldata = json.load(f)[ref]
+        if calpoff is None:
+            with open(f"{pathToCalib}/GA-PM-PP_TREE.json") as f:
+                caldata = json.load(f)[ref]
 
-        with open(f"{pathToCalib}/GA-PM-PP_TREE_rcal.json") as f:
-            rcaldata = json.load(f)[ref]
+            with open(f"{pathToCalib}/GA-PM-PP_TREE_rcal.json") as f:
+                rcaldata = json.load(f)[ref]
+        elif calpoff is not None:
+            caldata, rcaldata, crcaldata = calpoff, None, None
     except:
-        print(f"You don't have the access rights to the calibration data: /eos/user/j/jcapotor/RTDdata/calib")
-        print(f"Your data will not be corrected, but STILL DISPLAYED in rtd/onlinePlots")
-        print(f"Ask access to Jordi Capó (jcapo@ific.uv.es) to data and change in line 14 on rtd/pdhd/online.py -> pathToCalib='path/to/your/calib/data' ")
-        print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
-        caldata, rcaldata, crcaldata = None, None, None
+        caldata, rcaldata, crcaldata = calpoff, None, None
 
     integrationTime = 60  # seconds
 
@@ -1206,7 +1246,6 @@ def update_data(n_intervals):
     )
     return figure
 
-
 @app.callback(Output('pump-extendable', 'figure'),
               [Input('interval-graph-update', 'n_intervals')],
               [State('pump-extendable', 'figure')])
@@ -1216,21 +1255,17 @@ def update_data_real_time(n_intervals, existing_figure):
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
 
-
-
-
     try:
-        with open(f"{pathToCalib}/GA-PM-PP_TREE.json") as f:
-            caldata = json.load(f)[ref]
+        if calpoff is None:
+            with open(f"{pathToCalib}/GA-PM-PP_TREE.json") as f:
+                caldata = json.load(f)[ref]
 
-        with open(f"{pathToCalib}/GA-PM-PP_TREE_rcal.json") as f:
-            rcaldata = json.load(f)[ref]
+            with open(f"{pathToCalib}/GA-PM-PP_TREE_rcal.json") as f:
+                rcaldata = json.load(f)[ref]
+        elif calpoff is not None:
+            caldata, rcaldata, crcaldata = calpoff, None, None
     except:
-        print(f"You don't have the access rights to the calibration data: /eos/user/j/jcapotor/RTDdata/calib")
-        print(f"Your data will not be corrected, but STILL DISPLAYED in rtd/onlinePlots")
-        print(f"Ask access to Jordi Capó (jcapo@ific.uv.es) to data and change in line 14 on rtd/pdhd/online.py -> pathToCalib='path/to/your/calib/data' ")
-        print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
-        caldata, rcaldata, crcaldata = None, None, None
+        caldata, rcaldata, crcaldata = calpoff, None, None
 
     integrationTime = 60  # seconds
 
@@ -1309,7 +1344,6 @@ def update_data_real_time(n_intervals, existing_figure):
 
     return extended_figure
 
-
 @app.callback(
     Output('pipe', 'figure'),
     [Input('interval-quick', 'n_intervals')]
@@ -1320,20 +1354,17 @@ def update_data(n_intervals):
     today = datetime.now().strftime('%y-%m-%d')
     ref = "37131"
 
-
-
     try:
-        with open(f"{pathToCalib}/PIPE_TREE.json") as f:
-            caldata = json.load(f)[ref]
+        if calpoff is None:
+            with open(f"{pathToCalib}/PIPE_TREE.json") as f:
+                caldata = json.load(f)[ref]
 
-        with open(f"{pathToCalib}/PIPE_TREE_rcal.json") as f:
-            rcaldata = json.load(f)[ref]
+            with open(f"{pathToCalib}/PIPE_TREE_rcal.json") as f:
+                rcaldata = json.load(f)[ref]
+        elif calpoff is not None:
+            caldata, rcaldata, crcaldata = calpoff, None, None
     except:
-        print(f"You don't have the access rights to the calibration data: /eos/user/j/jcapotor/RTDdata/calib")
-        print(f"Your data will not be corrected, but STILL DISPLAYED in rtd/onlinePlots")
-        print(f"Ask access to Jordi Capó (jcapo@ific.uv.es) to data and change in line 14 on rtd/pdhd/online.py -> pathToCalib='path/to/your/calib/data' ")
-        print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
-        caldata, rcaldata, crcaldata = None, None, None
+        caldata, rcaldata, crcaldata = calpoff, None, None
 
     integrationTime = 60  # seconds
 
@@ -1422,21 +1453,17 @@ def update_data(n_intervals):
 
     sensors = [f"TE0{number}" for number in range(265, 302)]
 
-
-
     try:
-        with open(f"{pathToCalib}/GA-PM-PP_TREE.json") as f:
-            caldata = json.load(f)[ref]
+        if calpoff is None:
+            with open(f"{pathToCalib}/GA-PM-PP_TREE.json") as f:
+                caldata = json.load(f)[ref]
 
-        with open(f"{pathToCalib}/GA-PM-PP_TREE_rcal.json") as f:
-            rcaldata = json.load(f)[ref]
+            with open(f"{pathToCalib}/GA-PM-PP_TREE_rcal.json") as f:
+                rcaldata = json.load(f)[ref]
+        elif calpoff is not None:
+            caldata, rcaldata, crcaldata = calpoff, None, None
     except:
-        print(f"You don't have the access rights to the calibration data: /eos/user/j/jcapotor/RTDdata/calib")
-        print(f"Your data will not be corrected, but STILL DISPLAYED in rtd/onlinePlots")
-        print(f"Ask access to Jordi Capó (jcapo@ific.uv.es) to data and change in line 14 on rtd/pdhd/online.py -> pathToCalib='path/to/your/calib/data' ")
-        print(f"Calib data should be accessible from: https://cernbox.cern.ch/s/vg1yENbIdbxhOFH -> Download the calib folder and add path to pathToCalib")
-        print("\n")
-        caldata, rcaldata, crcaldata = None, None, None
+        caldata, rcaldata, crcaldata = calpoff, None, None
 
     integrationTime = 60*2  # seconds
 
@@ -1466,7 +1493,10 @@ def update_data(n_intervals):
             if id not in caldata.keys():
                 cal = 0
             elif id in caldata.keys():
-                cal = caldata[id][2]*1e-3
+                if calpoff is None:
+                    cal = caldata[id][2]*1e-3
+                elif calpoff is not None:
+                    cal = caldata[id][0]*1e-3
         elif caldata is None:
             cal = 0
         if rcaldata is not None:
