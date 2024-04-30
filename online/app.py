@@ -33,6 +33,8 @@ current_time = "... Initializing ..."
 pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
 mapping = pd.read_csv(f"{current_directory}/src/data/mapping/baseline_pdhd_mapping.csv",
                         sep=",", decimal=".", header=0)
+ref = "40533"
+treePath = 4
 
 app.layout = html.Div([
     html.Nav(className='navbar navbar-expand-lg navbar-light bg-light', children=[
@@ -381,7 +383,7 @@ def update_data(n_clicks, slider_range):
         allBool = False
         today = datetime.now().strftime('%y-%m-%d')
         path = "/eos/user/j/jcapotor/PDHDdata/"
-        ref = "40525"
+
 
 
 
@@ -427,14 +429,14 @@ def update_data(n_clicks, slider_range):
                 if id not in caldata.keys():
                     cal = 0
                 elif id in caldata.keys():
-                    cal = caldata[id][0]*1e-3
+                    cal = caldata [id][treePath]*1e-3
             elif caldata is None:
                 cal = 0
             if rcaldata is not None:
                 if id not in rcaldata.keys():
                     rcal = 0
                 elif id in rcaldata.keys():
-                    rcal = rcaldata[id][0]*1e-3
+                    rcal = rcaldata [id][treePath]*1e-3
             elif rcaldata is None:
                 rcal = 0
             if crcaldata is not None:
@@ -487,7 +489,7 @@ def update_data(n_clicks, slider_range):
 def update_data(n_intervals):
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
-    ref = "40525"
+
 
     sensors = mapping.head(96)["SC-ID"].values
 
@@ -551,7 +553,7 @@ def update_data(n_intervals):
 def update_data_real_time(n_intervals, existing_figure):
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
-    ref = "40525"
+
 
     sensors = mapping.head(96)["SC-ID"].values
 
@@ -624,7 +626,7 @@ def update_data(n_intervals):
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
     path = "/eos/user/j/jcapotor/PDHDdata/"
-    ref = "40525"
+
 
 
 
@@ -668,14 +670,14 @@ def update_data(n_intervals):
             if id not in caldata.keys():
                 cal = 0
             elif id in caldata.keys():
-                cal = caldata[id][0]*1e-3
+                cal = caldata [id][treePath]*1e-3
         elif caldata is None:
             cal = 0
         if rcaldata is not None:
             if id not in rcaldata.keys():
                 rcal = 0
             elif id in rcaldata.keys():
-                rcal = rcaldata[id][0]*1e-3
+                rcal = rcaldata [id][treePath]*1e-3
         elif rcaldata is None:
             rcal = 0
         if crcaldata is not None:
@@ -717,11 +719,8 @@ def update_data(n_intervals):
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
     path = "/eos/user/j/jcapotor/PDHDdata/"
-    ref = "40525"
 
     sensors = mapping.head(72)["SC-ID"].values
-
-
 
     integrationTime = 60  # seconds
 
@@ -766,14 +765,14 @@ def update_data(n_intervals):
             if id not in caldata.keys():
                 cal = 0
             elif id in caldata.keys():
-                cal = caldata[id][2]*1e-3
+                cal = caldata[id][treePath]*1e-3
         elif caldata is None:
             cal = 0
         if rcaldata is not None:
             if id not in rcaldata.keys():
                 rcal = 0
             elif id in rcaldata.keys():
-                rcal = rcaldata[id][2]*1e-3
+                rcal = rcaldata[id][treePath]*1e-3
         elif rcaldata is None:
             rcal = 0
         if crcaldata is not None:
@@ -845,7 +844,7 @@ def update_data(n_intervals):
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
     path = "/eos/user/j/jcapotor/PDHDdata/"
-    ref = "40525"
+
 
 
 
@@ -917,7 +916,7 @@ def update_data(n_intervals):
     system = "apa"
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
-    ref = "40525"
+
 
     integrationTime = 60  # seconds
 
@@ -980,7 +979,7 @@ def update_data(n_intervals):
     system = "hawai"
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
-    ref = "40525"
+
 
 
     integrationTime = 60  # seconds
@@ -1124,7 +1123,7 @@ def update_data(n_intervals):
     system = "pp"
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
-    ref = "40525"
+
 
 
 
@@ -1216,7 +1215,7 @@ def update_data_real_time(n_intervals, existing_figure):
     system = "pp"
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
-    ref = "40525"
+
 
 
 
@@ -1364,14 +1363,14 @@ def update_data(n_intervals):
             if id not in caldata.keys():
                 cal = 0
             elif id in caldata.keys():
-                cal = caldata[id][0]*1e-3
+                cal = caldata [id][treePath]*1e-3
         elif caldata is None:
             cal = 0
         if rcaldata is not None:
             if id not in rcaldata.keys():
                 rcal = 0
             elif id in rcaldata.keys():
-                rcal = rcaldata[id][0]*1e-3
+                rcal = rcaldata [id][treePath]*1e-3
         elif rcaldata is None:
             rcal = 0
 
@@ -1420,7 +1419,7 @@ def update_data(n_intervals):
 def update_data(n_intervals):
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
-    ref = "40525"
+
     sensors = [f"TE0{number}" for number in range(265, 302)]
 
 
