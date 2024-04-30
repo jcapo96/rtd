@@ -1,5 +1,4 @@
 *.root
-*.png
 *.pdf
 *keys.json
 *venv

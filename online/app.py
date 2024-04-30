@@ -30,7 +30,7 @@ empty_data = {'Height (m)': [], 'Temperature (K)': []}
 df_empty = pd.DataFrame(empty_data)
 current_time = "... Initializing ..."
 
-pathToCalib = "/afs/cern.ch/user/j/jcapotor/public/calib"
+pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
 
 app.layout = html.Div([
     html.Nav(className='navbar navbar-expand-lg navbar-light bg-light', children=[
@@ -76,10 +76,11 @@ app.layout = html.Div([
     ]),
     dcc.Location(id='url', refresh=False),
     html.Div(id="page-content"),
-    dcc.Interval(id='interval', interval=1000 * 10, n_intervals=0),
+    dcc.Interval(id='interval', interval=1000 * 20, n_intervals=0),
     dcc.Interval(id='interval-medium', interval=1000 * 8, n_intervals=0),
     dcc.Interval(id='interval-quick', interval=1000 * 5, n_intervals=0),
     dcc.Interval(id="interval-graph-update", interval = 1000*3, n_intervals=0),
+    dcc.Interval(id="interval-graph-update-stab", interval = 1000*10, n_intervals=0),
 
     # Bottom bar
     html.Footer([
@@ -345,14 +346,19 @@ def display_page(pathname):
             ),
         ])
     elif pathname == '/poff':
+        extended_figure = {
+            'data': [go.Scatter(x=[], y=[], mode='markers', name='Scatter Plot')],
+            'layout': go.Layout(
+                title='Stabilization evolution',
+                xaxis={'title': 'Epoch Time (s)'},
+                yaxis={'title': 'STD of stabilization plot (K)'}
+            )
+        }
         return html.Div([
-            html.H4('$\Delta$T = $T_NOW - T_15$', style={'text-align': 'center'}),
+            html.H4('Stabilization Plot', style={'text-align': 'center'}),
             dcc.Graph(id="diff",
-                    figure={
-                        'layout': {
-                            'title': 'Click Update button'
-                        }
-                    }),
+                    figure={'layout': {'title': 'Loading stabilization plot...'}}),
+            dcc.Graph(id="stab-extendable", figure=extended_figure),
         ])
     else:
         # Return a default page or handle other paths
@@ -475,7 +481,7 @@ def update_data(n_clicks, slider_range):
         return figure
 
 @app.callback(
-    Output('diff', 'figure'),
+    Output('diff', 'figure'),  # Corrected output specification
     [Input('interval', 'n_intervals')]
 )
 def update_data(n_intervals):
@@ -523,7 +529,6 @@ def update_data(n_intervals):
         # etemp.append(np.sqrt(dataFrame["temp"].std()**2 + dataFrame2["temp"].std()**2))
         etemp.append(np.sqrt(dataFrame["temp"].std()**2 + dataFrame2["temp"].std()))
     figure = px.scatter(x=y, y=temp, title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
-    figure.add_trace(go.Histogram(x=temp, orientation='h', name='Histogram'))
     figure.update_layout(
         xaxis_title="Height (m)",
         yaxis_title="Temperature (K)",
@@ -543,6 +548,79 @@ def update_data(n_intervals):
     )
     figure.update_yaxes(range=[-0.005, 0.005])
     return figure
+
+@app.callback(Output('stab-extendable', 'figure'),
+              [Input('interval-graph-update-stab', 'n_intervals')],
+              [State('stab-extendable', 'figure')])
+
+def update_data_real_time(n_intervals, existing_figure):
+    allBool = False
+    today = datetime.now().strftime('%y-%m-%d')
+    ref = "40525"
+
+    mapping = pd.read_csv(f"{current_directory}/src/data/mapping/pdhd_mapping.csv",
+                        sep=";", decimal=",", header=0)
+    sensors = mapping.head(96)["SC-ID"].values
+
+    integrationTime = 60  # seconds
+
+    today = datetime.now()
+    startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
+    endTimeStamp = today.timestamp()
+    if FROM_CERN is True:
+        m = MakeData(detector="np04", all=allBool, sensors=sensors,
+                        startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
+                        clockTick=60,
+                        ref=ref, FROM_CERN=FROM_CERN)
+    elif FROM_CERN is False:
+        m = MakeData(detector="np04", all=allBool, sensors=sensors,
+                        startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        clockTick=60,
+                        ref=ref, FROM_CERN=FROM_CERN)
+    m.getData()
+
+    temp_means = []
+
+    for name, dict in m.container.items():
+        id = str(int(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0]))
+        df = dict["access"].data
+        dataFrame2 = df.loc[(df["epochTime"]>(today - timedelta(seconds=60*15)).timestamp())&(df["epochTime"]<endTimeStamp)]
+        df = df.loc[(df["epochTime"] > startTimeStamp) & (df["epochTime"] < endTimeStamp)]
+        if df["temp"].mean() < 0:
+            continue
+        if df["temp"].mean() > 88:
+            continue
+        if abs(df["temp"].mean() - dataFrame2["temp"].mean()) > 0.02:
+            continue
+        temp_means.append(df["temp"].mean() - dataFrame2["temp"].mean())
+    temp_means = [temp for temp in temp_means if not np.isnan(temp)]
+    mean_temp_all_sensors = n_intervals
+    std_temp_all_sensors = np.std(temp_means)
+    scatter_trace = go.Scatter(
+        x=[mean_temp_all_sensors],
+        y=[std_temp_all_sensors],
+        mode='markers',
+        marker={"size": 10},
+        name="Standard Deviation"
+    )
+
+    if existing_figure is not None and 'data' in existing_figure:
+        existing_traces = existing_figure['data']
+        if existing_traces:
+            existing_trace = existing_traces[0]
+            existing_trace['x'] += [mean_temp_all_sensors]
+            existing_trace['y'] += [std_temp_all_sensors]
+            scatter_trace = existing_trace
+
+    extended_data = [scatter_trace]
+
+    extended_figure = {
+        'data': extended_data,
+        'layout': existing_figure['layout'] if existing_figure else {}
+    }
+
+    return extended_figure
 
 @app.callback(
     Output('tgrad', 'figure'),
