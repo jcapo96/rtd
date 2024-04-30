@@ -713,7 +713,15 @@ def update_data(n_intervals):
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
 
-    sensors = mapping.head(72)["SC-ID"].values
+    sensorIds = [
+        39666, 39665, 39664, 39667, 39661, 39660, 39655, 39654, 39653, 39652, 99999, 39651, 39650,
+        40526, 40525, 40524, 39659, 39658, 39657, 39649, 39648, 39647, 39646, 39644, 39630, 39629,
+        39628, 39627, 39626, 39625, 39624, 39623, 39622, 39621, 39620, 39619, 40533, 40530, 40531,
+        40529, 39614, 39613, 39612, 39611, 39610, 39609, 39608, 39607, 40000, 40001, 40002, 40003,
+        40004, 40005, 40006, 40007, 40008, 40009, 40010, 40011, 40012, 40013, 40014, 40015, 40016,
+        40017, 40018, 40019, 40020, 40021, 40022, 40023
+    ]
+
 
     integrationTime = 60  # seconds
 
@@ -736,13 +744,13 @@ def update_data(n_intervals):
     startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
     endTimeStamp = today.timestamp()
     if FROM_CERN is True:
-        m = MakeData(detector="np04", all=allBool, sensors=sensors,
+        m = MakeData(detector="np04", all=allBool, sensorIds=sensorIds,
                         startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
                         startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
                         clockTick=60,
                         ref=ref, FROM_CERN=FROM_CERN)
     elif FROM_CERN is False:
-        m = MakeData(detector="np04", all=allBool, sensors=sensors,
+        m = MakeData(detector="np04", all=allBool, sensorIds=sensorIds,
                         startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
                         clockTick=60,
                         ref=ref, FROM_CERN=FROM_CERN)

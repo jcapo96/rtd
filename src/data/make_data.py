@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 
 class MakeData():
-    def __init__(self, detector=None, system=None, sensors=None, all=False,
+    def __init__(self, detector=None, system=None, sensors=None, sensorIds=None, all=False,
                  startDay=None, endDay=None, startTime=None, endTime=None,
                  clockTick=60,
                  FROM_CERN=True, ref="40525",
@@ -18,6 +18,7 @@ class MakeData():
         self.detector = detector
         self.system = system
         self.sensors = sensors
+        self.sensorIds = sensorIds
         self.all = all
         self.startDay = startDay
         self.endDay = endDay
@@ -67,6 +68,9 @@ class MakeData():
                 self.selection = self.mapping.loc[(self.mapping["SYSTEM"] == self.system.upper())]
             elif (self.system is None) and (self.sensors is not None):
                 self.selection = self.mapping[self.mapping["SC-ID"].isin(self.sensors)]
+            elif (self.system is None) and (self.sensors is None):
+                if (self.sensorIds is not None):
+                    self.selection = self.mapping.loc[(self.mapping["CAL-ID"].isin(self.sensorIds))]
             else:
                 self.selection = self.mapping.loc[(self.mapping["SYSTEM"] == self.system.upper())]
                 self.selection = self.selection[self.selection["SC-ID"].isin(self.sensors)]
