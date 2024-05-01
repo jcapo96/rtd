@@ -67,6 +67,11 @@ def accessViaCache(elementId, startDay, endDay, startTime, endTime):
         print("Error: You should provide a valid start date")
         return None
 
+    startDateTime = (datetime.strptime(f"{startDay} {startTime}", "%Y-%m-%d %H:%M:%S") - timedelta(hours=2)).strftime("%Y-%m-%d %H:%M:%S")
+    endDateTime = (datetime.strptime(f"{endDay} {endTime}", "%Y-%m-%d %H:%M:%S") - timedelta(hours=2)).strftime("%Y-%m-%d %H:%M:%S")
+    startDay, startTime = startDateTime.split(" ")
+    endDay, endTime = endDateTime.split(" ")
+
     if endDay is None:
         # If only startDay is provided, retrieve data for that day only
         curl_command = ['curl', f'http://vm-01.cern.ch:8080/day/{startDay}/{elementId}']

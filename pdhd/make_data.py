@@ -9,7 +9,7 @@ from rtd.src.data.make_data import MakeData
 from datetime import datetime, timedelta
 import os
 
-system = "apa"
+system = "tgrad"
 allBool = False
 today = datetime.now().strftime('%y-%m-%d')
 path = "/eos/user/j/jcapotor/PDHDdata/"
@@ -17,7 +17,7 @@ ref = "40525"
 
 dates = []
 today = datetime.now()
-start_date = datetime(today.year, 4, 19)
+start_date = datetime(today.year, 4, 30)
 end_date = datetime.now()
 while start_date <= end_date:
     dates.append(start_date)

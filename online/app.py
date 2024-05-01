@@ -36,7 +36,7 @@ configuration = "precision"
 
 calibFileNameTGrad = "LARTGRAD_TREE"
 
-calibFileName = "POFF_2024-05-01T12:00:00_2024-05-01T15:00:00" #here use the name of the pumps-off calibration you want to use
+calibFileName = "POFF_2024-05-01T19:10:00_2024-05-01T21:35:00" #here use the name of the pumps-off calibration you want to use
 # calibFileName = None
 
 pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"

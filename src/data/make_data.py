@@ -49,16 +49,16 @@ class MakeData():
     def makeClock(self):
         changeDate = datetime.strptime(f"{self.startDay.split('-')[0]}-03-31 02:00:00", "%Y-%m-%d %H:%M:%S").timestamp()
         if (self.startDay is not None) and (self.endDay is not None):
-            startDatetime = datetime.strptime(f"{self.startDay} {self.startTime}", "%Y-%m-%d %H:%M:%S").timestamp() + 60*60
-            endDatetime = datetime.strptime(f"{self.endDay} {self.endTime}", "%Y-%m-%d %H:%M:%S").timestamp() + 60*60
+            startDatetime = datetime.strptime(f"{self.startDay} {self.startTime}", "%Y-%m-%d %H:%M:%S").timestamp()
+            endDatetime = datetime.strptime(f"{self.endDay} {self.endTime}", "%Y-%m-%d %H:%M:%S").timestamp()
         elif (self.startDay is not None) and (self.startTime is None) and (self.endDay is None):
             self.startTime = "00:00:00"
-            startDatetime = datetime.strptime(f"{self.startDay} {self.startTime}", "%Y-%m-%d %H:%M:%S").timestamp() + 60*60
-            endDatetime = datetime.strptime(f"{self.startDay} {self.startTime}", "%Y-%m-%d %H:%M:%S").timestamp() + 60*60 + 60*60*24
+            startDatetime = datetime.strptime(f"{self.startDay} {self.startTime}", "%Y-%m-%d %H:%M:%S").timestamp()
+            endDatetime = datetime.strptime(f"{self.startDay} {self.startTime}", "%Y-%m-%d %H:%M:%S").timestamp() + 60*60*24
         if startDatetime > changeDate:
-            startDatetime += 60*60
+            startDatetime += 0
         if endDatetime > changeDate:
-            endDatetime += 60*60
+            endDatetime += 0
         self.ticks = np.arange(startDatetime, endDatetime+1, self.clockTick) #have to add +1 to endDate because of python syntax
         return self
 
@@ -218,8 +218,9 @@ class MakeData():
         with tqdm.tqdm(total=len(self.selection)*len(self.ticks)) as pbar:
             for ntick, tick in enumerate(self.ticks):
                 for idx, key in enumerate(container.keys()):
-                    # index = int(key.split("TE")[1]) - 1
+
                     index = idx
+
                     clockData = container[key]["access"].data.loc[(container[key]["access"].data["epochTime"] >= tick) & (container[key]["access"].data["epochTime"] < tick+self.clockTick)]
                     y[index] = container[key]["Y"]
                     name[index] = container[key]["name"]
@@ -235,6 +236,7 @@ class MakeData():
                         eepochTime[index] = self.clockTick/2
                         temp[index] = clockData["temp"].mean()
                         etemp[index] = clockData["temp"].std()
+
                     pbar.update(1)
 
                 outputTree.Fill()

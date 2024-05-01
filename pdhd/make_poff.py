@@ -10,9 +10,9 @@ from datetime import datetime, timedelta
 import json
 
 allBool = True
-system = "apa"
-start_date = datetime(2024, 5, 1, 12, 0, 0) #write here the start datetime
-end_date = datetime(2024, 5, 1, 15, 0, 0) #write here the end datetime
+system = "tgrad"
+start_date = datetime(2024, 5, 1, 21, 10, 0) #write here the start datetime
+end_date = datetime(2024, 5, 1, 21, 40, 0) #write here the end datetime
 
 
 path = f"/eos/user/j/jcapotor/RTDdata/calib/POFF_{start_date.strftime('%Y-%m-%d')}T{start_date.strftime('%H:%M:%S')}_{end_date.strftime('%Y-%m-%d')}T{end_date.strftime('%H:%M:%S')}"
@@ -23,9 +23,10 @@ m = MakeData(detector="np04", all=allBool,
                     startTime=start_date.strftime("%H:%M:%S"),
                     endDay=end_date.strftime("%Y-%m-%d"),
                     endTime=end_date.strftime("%H:%M:%S"),
-                    clockTick=120,
+                    clockTick=60,
                     pathToSaveData=F"/eos/user/j/jcapotor/PDHDdata/poff/",
                     ref=ref, configuration="precision", FROM_CERN=True)
+# m.make()
 m.getData()
 
 container = m.container
