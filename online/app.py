@@ -36,7 +36,7 @@ configuration = "precision"
 
 calibFileNameTGrad = "LARTGRAD_TREE"
 
-calibFileName = "POFF_2024-05-01T11:40:00_2024-05-01T12:40:00" #here use the name of the pumps-off calibration you want to use
+calibFileName = "POFF_2024-05-01T12:00:00_2024-05-01T15:00:00" #here use the name of the pumps-off calibration you want to use
 # calibFileName = None
 
 pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
@@ -254,6 +254,16 @@ def display_page(pathname):
             html.H1('Sensors on the APAs', style={'text-align': 'center', 'color': 'black', 'font-size': '36px'}),
             dcc.Graph(
                 id='apa',
+                config={'displayModeBar': False},
+                figure = {
+                    'layout': {
+                        'annotations': [{'text': 'Loading...', 'x': 0.5, 'y': 0.5, 'showarrow': False}],
+                        'title': '... Loading temperature graph ...'
+                    }
+                }
+            ),
+            dcc.Graph(
+                id='apa-height',
                 config={'displayModeBar': False},
                 figure = {
                     'layout': {
@@ -790,8 +800,8 @@ def update_data(n_intervals):
             crcal = 0
         df = dict["access"].data
         df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
-        # if (df["temp"].mean() - cal - rcal - crcal) > 88:
-        #     continue
+        if (df["temp"].mean() - cal - rcal - crcal) > 88:
+            continue
 
         y[dict["SYSTEM"]].append(dict["Y"])
         temp[dict["SYSTEM"]].append(df["temp"].mean() - cal - rcal - crcal)
@@ -982,10 +992,10 @@ def update_data(n_intervals):
         etemp[id].append(df["temp"].std())
     fig = make_subplots(rows=2, cols=2)
     # Add traces to subplots
-    fig.add_trace(go.Scatter(x=y[0], y=temp[0], mode='markers', name=f"APA1"), row=1, col=1)
-    fig.add_trace(go.Scatter(x=y[1], y=temp[1], mode='markers', name=f"APA2"), row=1, col=2)
-    fig.add_trace(go.Scatter(x=y[2], y=temp[2], mode='markers', name=f"APA3"), row=2, col=1)
-    fig.add_trace(go.Scatter(x=y[3], y=temp[3], mode='markers', name=f"APA4"), row=2, col=2)
+    fig.add_trace(go.Scatter(x=y[0], y=temp[0], error_y={"type":"data", "array":etemp[0], "visible":True}, mode='markers', name=f"APA1"), row=1, col=1)
+    fig.add_trace(go.Scatter(x=y[1], y=temp[1], error_y={"type":"data", "array":etemp[1], "visible":True}, mode='markers', name=f"APA2"), row=1, col=2)
+    fig.add_trace(go.Scatter(x=y[2], y=temp[2], error_y={"type":"data", "array":etemp[2], "visible":True}, mode='markers', name=f"APA3"), row=2, col=1)
+    fig.add_trace(go.Scatter(x=y[3], y=temp[3], error_y={"type":"data", "array":etemp[3], "visible":True}, mode='markers', name=f"APA4"), row=2, col=2)
 
     # Update layout
     fig.update_layout(
@@ -1002,6 +1012,96 @@ def update_data(n_intervals):
 
     # Convert subplot to a Plotly figure
     figure = fig.to_dict()
+    return figure
+
+@app.callback(
+    Output('apa-height', 'figure'),
+    [Input('interval-medium', 'n_intervals')]
+)
+def update_data(n_intervals):
+    system = "apa"
+    allBool = False
+    today = datetime.now().strftime('%y-%m-%d')
+
+    integrationTime = 60  # seconds
+
+    try:
+        if calpoff is None:
+            with open(f"{pathToCalib}/{calibFileNameTGrad}.json") as f:
+                caldata = json.load(f)[ref]
+
+            with open(f"{pathToCalib}/{calibFileNameTGrad}_rcal.json") as f:
+                rcaldata = json.load(f)[ref]
+
+            with open(f"{pathToCalib}/CERNRCalib.json") as f:
+                crcaldata = json.load(f)
+        elif calpoff is not None:
+            caldata, rcaldata, crcaldata = calpoff, None, None
+    except:
+        caldata, rcaldata, crcaldata = calpoff, None, None
+
+    today = datetime.now()
+    startTimeStamp = (today - timedelta(seconds=integrationTime)).timestamp()
+    endTimeStamp = today.timestamp()
+    if FROM_CERN is True:
+        m = MakeData(detector="np04", all=allBool, system=system,
+                        startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
+                        clockTick=60, configuration=configuration,
+                        ref=ref, FROM_CERN=FROM_CERN)
+    elif FROM_CERN is False:
+        m = MakeData(detector="np04", all=allBool, system=system,
+                        startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
+                        clockTick=60, configuration=configuration,
+                        ref=ref, FROM_CERN=FROM_CERN)
+    m.getData()
+    y, temp, etemp = [], [], []
+    for name, dict in m.container.items():
+        id = str(int(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0]))
+        if caldata is not None:
+            if id not in caldata.keys():
+                cal = 0
+            elif id in caldata.keys():
+                cal = caldata[id][treePath]*1e-3
+        elif caldata is None:
+            cal = 0
+        if rcaldata is not None:
+            if id not in rcaldata.keys():
+                rcal = 0
+            elif id in rcaldata.keys():
+                rcal = rcaldata[id][treePath]*1e-3
+        elif rcaldata is None:
+            rcal = 0
+        if crcaldata is not None:
+            crcal = np.mean(crcaldata[f"s{int(name.split('TE')[1])}"])*1e-3
+        elif crcaldata is None:
+            crcal = 0
+        df = dict["access"].data
+        df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
+        if (df["temp"].mean() - cal - rcal - crcal) > 88:
+            continue
+        y.append(dict["Y"])
+        temp.append(df["temp"].mean() - cal)
+        etemp.append(df["temp"].std())
+
+    figure = px.scatter(x=y, y=temp, error_y=etemp, title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
+    figure.update_layout(
+        xaxis_title="Height (m)",
+        yaxis_title="Temperature (K)",
+        font = {
+            "family": "Arial, sans-serif",
+            "size": 14,
+            "color": "black"
+        },
+        title_font = {
+            "family": "Arial, sans-serif",
+            "size": 20,
+            "color": "black"
+        },
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        title_x=0.5,
+    )
     return figure
 
 @app.callback(

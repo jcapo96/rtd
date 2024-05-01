@@ -10,9 +10,9 @@ from datetime import datetime, timedelta
 import json
 
 allBool = True
-
-start_date = datetime(2024, 5, 1, 9, 50, 0) #write here the start datetime
-end_date = datetime(2024, 5, 1, 10, 50, 0) #write here the end datetime
+system = "apa"
+start_date = datetime(2024, 5, 1, 12, 0, 0) #write here the start datetime
+end_date = datetime(2024, 5, 1, 15, 0, 0) #write here the end datetime
 
 
 path = f"/eos/user/j/jcapotor/RTDdata/calib/POFF_{start_date.strftime('%Y-%m-%d')}T{start_date.strftime('%H:%M:%S')}_{end_date.strftime('%Y-%m-%d')}T{end_date.strftime('%H:%M:%S')}"
@@ -25,7 +25,7 @@ m = MakeData(detector="np04", all=allBool,
                     endTime=end_date.strftime("%H:%M:%S"),
                     clockTick=120,
                     pathToSaveData=F"/eos/user/j/jcapotor/PDHDdata/poff/",
-                    ref=ref, configuration="switched", FROM_CERN=True)
+                    ref=ref, configuration="precision", FROM_CERN=True)
 m.getData()
 
 container = m.container
@@ -45,8 +45,8 @@ for refkey in container.keys():
         if (data_sens["temp"].mean() > 88 or data_sens["temp"].mean() < 0):
             calib[refid][sensid] = [0 for i in range(9)]
         else:
-            if refid == 40192:
-                print((data_sens["temp"].mean() - data_ref["temp"].mean())*1e3, sensid)
+            # if refid == 40192:
+            #     print((data_sens["temp"].mean() - data_ref["temp"].mean())*1e3, sensid)
             calib[refid][sensid] = [(data_sens["temp"].mean() - data_ref["temp"].mean())*1e3 for _ in range(9)]
 
 with open(f"{path}.json", "w") as json_file:
