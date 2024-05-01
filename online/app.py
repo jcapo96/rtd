@@ -30,16 +30,18 @@ empty_data = {'Height (m)': [], 'Temperature (K)': []}
 df_empty = pd.DataFrame(empty_data)
 current_time = "... Initializing ..."
 
-pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
-mapping = pd.read_csv(f"{current_directory}/src/data/mapping/baseline_pdhd_mapping.csv",
-                        sep=",", decimal=".", header=0)
-ref = "40533"
+ref = "40525"
 treePath = 0
+configuration = "precision"
 
 calibFileNameTGrad = "LARTGRAD_TREE"
 
-calibFileName = "POFF_2024-04-30T19:00:00_2024-04-30T20:00:00" #here use the name of the pumps-off calibration you want to use
+calibFileName = "POFF_2024-04-30T22:00:00_2024-05-01T06:30:00" #here use the name of the pumps-off calibration you want to use
 # calibFileName = None
+
+pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
+mapping = pd.read_csv(f"{current_directory}/src/data/mapping/{configuration}_pdhd_mapping.csv",
+                        sep=",", decimal=".", header=0)
 
 try:
     with open(f"{pathToCalib}/{calibFileName}.json") as f:
@@ -417,12 +419,12 @@ def update_data(n_clicks, slider_range):
             m = MakeData(detector="np04", all=allBool, sensors = sensors,
                             startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
                             startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
-                            clockTick=60,
+                            clockTick=60, configuation=configuration,
                             ref=ref, FROM_CERN=FROM_CERN)
         elif FROM_CERN is False:
             m = MakeData(detector="np04", all=allBool, sensors = sensors,
                             startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
-                            clockTick=60,
+                            clockTick=60, configuration=configuration,
                             ref=ref, FROM_CERN=FROM_CERN)
         m.getData()
         x, y, z, temp, etemp = [], [], [], [], []
@@ -642,7 +644,7 @@ def update_data(n_intervals):
             with open(f"{pathToCalib}/CERNRCalib.json") as f:
                 crcaldata = json.load(f)
         elif calpoff is not None:
-            caldta, rcaldata, crcaldata = calpoff, None, None
+            caldata, rcaldata, crcaldata = calpoff, None, None
     except:
         caldata, rcaldata, crcaldata = calpoff, None, None
 
@@ -918,14 +920,17 @@ def update_data(n_intervals):
     integrationTime = 60  # seconds
 
     try:
-        with open(f"{pathToCalib}/{calibFileName}.json") as f:
-            caldata = json.load(f)[ref]
+        if calpoff is None:
+            with open(f"{pathToCalib}/{calibFileNameTGrad}.json") as f:
+                caldata = json.load(f)[ref]
 
-        with open(f"{pathToCalib}/{calibFileName}_rcal.json") as f:
-            rcaldata = json.load(f)[ref]
+            with open(f"{pathToCalib}/{calibFileNameTGrad}_rcal.json") as f:
+                rcaldata = json.load(f)[ref]
 
-        with open(f"{pathToCalib}/CERNRCalib.json") as f:
-            crcaldata = json.load(f)
+            with open(f"{pathToCalib}/CERNRCalib.json") as f:
+                crcaldata = json.load(f)
+        elif calpoff is not None:
+            caldata, rcaldata, crcaldata = calpoff, None, None
     except:
         caldata, rcaldata, crcaldata = calpoff, None, None
 
@@ -936,12 +941,12 @@ def update_data(n_intervals):
         m = MakeData(detector="np04", all=allBool, system=system,
                         startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
                         startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
-                        clockTick=60,
+                        clockTick=60, configuation=configuration,
                         ref=ref, FROM_CERN=FROM_CERN)
     elif FROM_CERN is False:
         m = MakeData(detector="np04", all=allBool, system=system,
                         startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
-                        clockTick=60,
+                        clockTick=60, configuration=configuration,
                         ref=ref, FROM_CERN=FROM_CERN)
     m.getData()
     y, temp, etemp = [[] for i in range(4)], [[] for i in range(4)], [[] for i in range(4)]
@@ -1009,14 +1014,17 @@ def update_data(n_intervals):
     today = datetime.now().strftime('%y-%m-%d')
 
     try:
-        with open(f"{pathToCalib}/{calibFileName}.json") as f:
-            caldata = json.load(f)[ref]
+        if calpoff is None:
+            with open(f"{pathToCalib}/{calibFileNameTGrad}.json") as f:
+                caldata = json.load(f)[ref]
 
-        with open(f"{pathToCalib}/{calibFileName}_rcal.json") as f:
-            rcaldata = json.load(f)[ref]
+            with open(f"{pathToCalib}/{calibFileNameTGrad}_rcal.json") as f:
+                rcaldata = json.load(f)[ref]
 
-        with open(f"{pathToCalib}/CERNRCalib.json") as f:
-            crcaldata = json.load(f)
+            with open(f"{pathToCalib}/CERNRCalib.json") as f:
+                crcaldata = json.load(f)
+        elif calpoff is not None:
+            caldata, rcaldata, crcaldata = calpoff, None, None
     except:
         caldata, rcaldata, crcaldata = calpoff, None, None
 

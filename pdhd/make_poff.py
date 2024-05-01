@@ -11,8 +11,8 @@ import json
 
 allBool = True
 
-start_date = datetime(2024, 4, 30, 19, 0, 0) #write here the start datetime
-end_date = datetime(2024, 4, 30, 20, 0, 0) #write here the end datetime
+start_date = datetime(2024, 5, 1, 8, 30, 0) #write here the start datetime
+end_date = datetime(2024, 5, 1, 9, 30, 0) #write here the end datetime
 
 
 path = f"/eos/user/j/jcapotor/RTDdata/calib/POFF_{start_date.strftime('%Y-%m-%d')}T{start_date.strftime('%H:%M:%S')}_{end_date.strftime('%Y-%m-%d')}T{end_date.strftime('%H:%M:%S')}"
@@ -25,7 +25,7 @@ m = MakeData(detector="np04", all=allBool,
                     endTime=end_date.strftime("%H:%M:%S"),
                     clockTick=60,
                     pathToSaveData=F"/eos/user/j/jcapotor/PDHDdata/poff/",
-                    ref=ref, FROM_CERN=True)
+                    ref=ref, configuation="switched", FROM_CERN=True)
 m.getData()
 
 container = m.container
