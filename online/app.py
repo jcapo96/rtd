@@ -36,7 +36,7 @@ configuration = "precision"
 
 calibFileNameTGrad = "LARTGRAD_TREE"
 
-calibFileName = "POFF_2024-04-30T22:00:00_2024-05-01T06:30:00" #here use the name of the pumps-off calibration you want to use
+calibFileName = "POFF_2024-05-01T11:40:00_2024-05-01T12:40:00" #here use the name of the pumps-off calibration you want to use
 # calibFileName = None
 
 pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
@@ -94,10 +94,10 @@ app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
     html.Div(id="page-content"),
     dcc.Interval(id='interval', interval=1000 * 20, n_intervals=0),
-    dcc.Interval(id='interval-medium', interval=1000 * 8, n_intervals=0),
+    dcc.Interval(id='interval-medium', interval=1000 * 10, n_intervals=0),
     dcc.Interval(id='interval-quick', interval=1000 * 5, n_intervals=0),
-    dcc.Interval(id="interval-graph-update", interval = 1000*3, n_intervals=0),
-    dcc.Interval(id="interval-graph-update-stab", interval = 1000*10, n_intervals=0),
+    dcc.Interval(id="interval-graph-update", interval = 1000*5, n_intervals=0),
+    dcc.Interval(id="interval-graph-update-stab", interval = 1000*15, n_intervals=0),
 
     # Bottom bar
     html.Footer([
@@ -419,7 +419,7 @@ def update_data(n_clicks, slider_range):
             m = MakeData(detector="np04", all=allBool, sensors = sensors,
                             startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
                             startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
-                            clockTick=60, configuation=configuration,
+                            clockTick=60, configuration=configuration,
                             ref=ref, FROM_CERN=FROM_CERN)
         elif FROM_CERN is False:
             m = MakeData(detector="np04", all=allBool, sensors = sensors,
@@ -655,12 +655,12 @@ def update_data(n_intervals):
         m = MakeData(detector="np04", all=allBool, system=system,
                         startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
                         startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
-                        clockTick=60,
+                        clockTick=60, configuration=configuration,
                         ref=ref, FROM_CERN=FROM_CERN)
     elif FROM_CERN is False:
         m = MakeData(detector="np04", all=allBool, system=system,
                         startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
-                        clockTick=60,
+                        clockTick=60, configuration=configuration,
                         ref=ref, FROM_CERN=FROM_CERN)
     m.getData()
     y, temp, etemp = [], [], []
@@ -691,6 +691,7 @@ def update_data(n_intervals):
         y.append(dict["Y"])
         temp.append(df["temp"].mean() - cal - rcal - crcal)
         etemp.append(df["temp"].std())
+
     figure = px.scatter(x=y, y=temp, error_y=etemp, title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
     figure.update_layout(
         xaxis_title="Height (m)",
@@ -941,7 +942,7 @@ def update_data(n_intervals):
         m = MakeData(detector="np04", all=allBool, system=system,
                         startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
                         startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
-                        clockTick=60, configuation=configuration,
+                        clockTick=60, configuration=configuration,
                         ref=ref, FROM_CERN=FROM_CERN)
     elif FROM_CERN is False:
         m = MakeData(detector="np04", all=allBool, system=system,
@@ -980,7 +981,6 @@ def update_data(n_intervals):
         temp[id].append(df["temp"].mean() - cal)
         etemp[id].append(df["temp"].std())
     fig = make_subplots(rows=2, cols=2)
-
     # Add traces to subplots
     fig.add_trace(go.Scatter(x=y[0], y=temp[0], mode='markers', name=f"APA1"), row=1, col=1)
     fig.add_trace(go.Scatter(x=y[1], y=temp[1], mode='markers', name=f"APA2"), row=1, col=2)

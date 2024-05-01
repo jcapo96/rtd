@@ -9,7 +9,7 @@ class MakeData():
     def __init__(self, detector=None, system=None, sensors=None, sensorIds=None, all=False,
                  startDay=None, endDay=None, startTime=None, endTime=None,
                  clockTick=60,
-                 FROM_CERN=True, ref="40525", configuation="precision",
+                 FROM_CERN=True, ref="40525", configuration="precision",
                  pathToSaveData="/eos/user/j/jcapotor/PDHDdata/") -> None:
 
         self.pathToSaveData = pathToSaveData
@@ -29,7 +29,7 @@ class MakeData():
         self.FROM_CERN = FROM_CERN
 
         self.ref = ref
-        self.configuration = configuation
+        self.configuration = configuration
     def loadSlowControlWebMapping(self):
         """
         Loads the mapping information from an external source into the SlowControlWebMapping attribute.
