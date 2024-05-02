@@ -32,11 +32,11 @@ current_time = "... Initializing ..."
 
 ref = "40525"
 treePath = 0
-configuration = "pipes"
+configuration = "final"
 
 calibFileNameTGrad = "LARTGRAD_TREE"
 
-calibFileName = "POFF_2024-05-01T21:10:00_2024-05-01T21:40:00" #here use the name of the pumps-off calibration you want to use
+calibFileName = "POFF_2024-05-02T13:15:00_2024-05-02T13:20:00" #here use the name of the pumps-off calibration you want to use
 # calibFileName = None
 
 pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
@@ -763,12 +763,12 @@ def update_data(n_intervals):
         m = MakeData(detector="np04", all=allBool, sensorIds=sensorIds,
                         startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
                         startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
-                        clockTick=60,
+                        clockTick=60, configuration=configuration,
                         ref=ref, FROM_CERN=FROM_CERN)
     elif FROM_CERN is False:
         m = MakeData(detector="np04", all=allBool, sensorIds=sensorIds,
                         startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
-                        clockTick=60,
+                        clockTick=60, configuration=configuration,
                         ref=ref, FROM_CERN=FROM_CERN)
     m.getData()
     y = {"TGRAD":[], "HAWAI":[]}
@@ -884,12 +884,12 @@ def update_data(n_intervals):
         m = MakeData(detector="np04", all=allBool, system=system,
                         startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
                         startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
-                        clockTick=60,
+                        clockTick=60, configuration=configuration,
                         ref=ref, FROM_CERN=FROM_CERN)
     elif FROM_CERN is False:
         m = MakeData(detector="np04", all=allBool, system=system,
                         startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
-                        clockTick=60,
+                        clockTick=60, configuration=configuration,
                         ref=ref, FROM_CERN=FROM_CERN)
     m.getData()
     y, temp, etemp = [], [], []
@@ -1137,12 +1137,12 @@ def update_data(n_intervals):
         m = MakeData(detector="np04", all=allBool, system=system,
                         startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
                         startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
-                        clockTick=60,
+                        clockTick=60, configuration=configuration,
                         ref=ref, FROM_CERN=FROM_CERN)
     elif FROM_CERN is False:
         m = MakeData(detector="np04", all=allBool, system=system,
                         startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
-                        clockTick=60,
+                        clockTick=60, configuration=configuration,
                         ref=ref, FROM_CERN=FROM_CERN)
     m.getData()
     y, temp, etemp = [], [], []
@@ -1226,12 +1226,12 @@ def update_data(n_intervals):
         m = MakeData(detector="np04", all=allBool, system=system,
                         startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
                         startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
-                        clockTick=60,
+                        clockTick=60, configuration=configuration,
                         ref=ref, FROM_CERN=FROM_CERN)
     elif FROM_CERN is False:
         m = MakeData(detector="np04", all=allBool, system=system,
                         startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
-                        clockTick=60,
+                        clockTick=60, configuration=configuration,
                         ref=ref, FROM_CERN=FROM_CERN)
     m.getData()
     y, temp, etemp = [], [], []
@@ -1312,12 +1312,12 @@ def update_data(n_intervals):
         m = MakeData(detector="np04", all=allBool, system=system,
                         startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
                         startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
-                        clockTick=60,
+                        clockTick=60, configuration=configuration,
                         ref=ref, FROM_CERN=FROM_CERN)
     elif FROM_CERN is False:
         m = MakeData(detector="np04", all=allBool, system=system,
                         startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
-                        clockTick=60,
+                        clockTick=60, configuration=configuration,
                         ref=ref, FROM_CERN=FROM_CERN)
     m.getData()
     y, temp, etemp = [], [], []
@@ -1399,12 +1399,12 @@ def update_data_real_time(n_intervals, existing_figure):
         m = MakeData(detector="np04", all=allBool, system=system,
                         startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
                         startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
-                        clockTick=60,
+                        clockTick=60, configuration=configuration,
                         ref=ref, FROM_CERN=FROM_CERN)
     elif FROM_CERN is False:
         m = MakeData(detector="np04", all=allBool, system=system,
                         startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
-                        clockTick=60,
+                        clockTick=60, configuration=configuration,
                         ref=ref, FROM_CERN=FROM_CERN)
     m.getData()
 
@@ -1498,12 +1498,12 @@ def update_data(n_intervals):
         m = MakeData(detector="np04", all=allBool, system=system,
                         startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
                         startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
-                        clockTick=60,
+                        clockTick=60, configuration=configuration,
                         ref=ref, FROM_CERN=FROM_CERN)
     elif FROM_CERN is False:
         m = MakeData(detector="np04", all=allBool, system=system,
                         startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
-                        clockTick=60,
+                        clockTick=60, configuration=configuration,
                         ref=ref, FROM_CERN=FROM_CERN)
     m.getData()
     y = {"I":[], "U":[], "M":[]}
@@ -1597,12 +1597,12 @@ def update_data(n_intervals):
         m = MakeData(detector="np04", all=allBool, sensors=sensors,
                         startDay=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
                         startTime=f"{(today - timedelta(seconds=60*60*2 + 60*5)).strftime('%H:%M:%S')}", endTime=f"{today.strftime('%H:%M:%S')}",
-                        clockTick=60,
+                        clockTick=60, configuration=configuration,
                         ref=ref, FROM_CERN=FROM_CERN)
     elif FROM_CERN is False:
         m = MakeData(detector="np04", all=allBool, sensors=sensors,
                         startDay=f"{today.strftime('%Y-%m-%d')}", endDay=f"{today.strftime('%Y-%m-%d')}",
-                        clockTick=60,
+                        clockTick=60, configuration=configuration,
                         ref=ref, FROM_CERN=FROM_CERN)
     m.getData()
     y = {"GA-1":[], "GA-2":[]}

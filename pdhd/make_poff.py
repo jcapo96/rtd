@@ -11,8 +11,8 @@ import json
 
 allBool = True
 system = "tgrad"
-start_date = datetime(2024, 5, 1, 21, 10, 0) #write here the start datetime
-end_date = datetime(2024, 5, 1, 21, 40, 0) #write here the end datetime
+start_date = datetime(2024, 5, 2, 13, 15, 0) #write here the start datetime
+end_date = datetime(2024, 5, 2, 13, 20, 0) #write here the end datetime
 
 
 path = f"/eos/user/j/jcapotor/RTDdata/calib/POFF_{start_date.strftime('%Y-%m-%d')}T{start_date.strftime('%H:%M:%S')}_{end_date.strftime('%Y-%m-%d')}T{end_date.strftime('%H:%M:%S')}"
@@ -25,7 +25,7 @@ m = MakeData(detector="np04", all=allBool,
                     endTime=end_date.strftime("%H:%M:%S"),
                     clockTick=60,
                     pathToSaveData=F"/eos/user/j/jcapotor/PDHDdata/poff/",
-                    ref=ref, configuration="precision", FROM_CERN=True)
+                    ref=ref, configuration="final", FROM_CERN=True)
 # m.make()
 m.getData()
 
