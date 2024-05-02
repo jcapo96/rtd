@@ -9,7 +9,7 @@ class MakeData():
     def __init__(self, detector=None, system=None, sensors=None, sensorIds=None, all=False,
                  startDay=None, endDay=None, startTime=None, endTime=None,
                  clockTick=60,
-                 FROM_CERN=True, ref="40525", configuration="precision",
+                 FROM_CERN=True, ref="40525", configuration="pipes",
                  pathToSaveData="/eos/user/j/jcapotor/PDHDdata/") -> None:
 
         self.pathToSaveData = pathToSaveData

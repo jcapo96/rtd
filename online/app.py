@@ -32,11 +32,11 @@ current_time = "... Initializing ..."
 
 ref = "40525"
 treePath = 0
-configuration = "precision"
+configuration = "pipes"
 
 calibFileNameTGrad = "LARTGRAD_TREE"
 
-calibFileName = "POFF_2024-05-01T19:10:00_2024-05-01T21:35:00" #here use the name of the pumps-off calibration you want to use
+calibFileName = "POFF_2024-05-01T21:10:00_2024-05-01T21:40:00" #here use the name of the pumps-off calibration you want to use
 # calibFileName = None
 
 pathToCalib = "/eos/user/j/jcapotor/RTDdata/calib"
@@ -1195,21 +1195,23 @@ def update_data(n_intervals):
 
 @app.callback(
     Output('prm', 'figure'),
-    [Input('interval-quick', 'n_intervals')]
+    [Input('interval-medium', 'n_intervals')]
 )
 def update_data(n_intervals):
     system = "prm"
     allBool = False
     today = datetime.now().strftime('%y-%m-%d')
-    ref = "48733"
 
     try:
         if calpoff is None:
-            with open(f"{pathToCalib}/GA-PM-PP_TREE.json") as f:
+            with open(f"{pathToCalib}/{calibFileNameTGrad}.json") as f:
                 caldata = json.load(f)[ref]
 
-            with open(f"{pathToCalib}/GA-PM-PP_TREE_rcal.json") as f:
+            with open(f"{pathToCalib}/{calibFileNameTGrad}_rcal.json") as f:
                 rcaldata = json.load(f)[ref]
+
+            with open(f"{pathToCalib}/CERNRCalib.json") as f:
+                crcaldata = json.load(f)
         elif calpoff is not None:
             caldata, rcaldata, crcaldata = calpoff, None, None
     except:
@@ -1235,28 +1237,30 @@ def update_data(n_intervals):
     y, temp, etemp = [], [], []
     for name, dict in m.container.items():
         id = str(int(mapping.loc[(mapping["SC-ID"]==name)]["CAL-ID"].values[0]))
-
         if caldata is not None:
             if id not in caldata.keys():
                 cal = 0
             elif id in caldata.keys():
-                cal = caldata[id][2]*1e-3
+                cal = caldata[id][treePath]*1e-3
         elif caldata is None:
             cal = 0
         if rcaldata is not None:
             if id not in rcaldata.keys():
                 rcal = 0
             elif id in rcaldata.keys():
-                rcal = rcaldata[id][2]*1e-3
+                rcal = rcaldata[id][treePath]*1e-3
         elif rcaldata is None:
             rcal = 0
-
+        if crcaldata is not None:
+            crcal = np.mean(crcaldata[f"s{int(name.split('TE')[1])}"])*1e-3
+        elif crcaldata is None:
+            crcal = 0
         df = dict["access"].data
         df = df.loc[(df["epochTime"]>startTimeStamp)&(df["epochTime"]<endTimeStamp)]
-        if df["temp"].mean() < 0:
+        if df["temp"].mean() > 88.5:
             continue
         y.append(dict["Y"])
-        temp.append(df["temp"].mean() - cal - rcal)
+        temp.append(df["temp"].mean() - cal)
         etemp.append(df["temp"].std())
     figure = px.scatter(x=y, y=temp, error_y=etemp, title=f"{today.strftime('%Y-%m-%d %H:%M:%S')}")
     figure.update_layout(
