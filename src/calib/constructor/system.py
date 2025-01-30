@@ -31,6 +31,8 @@ class System:
         """
         with open(self.pathToInfo, 'r') as file:
             info = json.load(file)[self.systemName]
+
+        print(f"System information: {info} \n")
         return info
 
     def save(self, method="TREE"):
@@ -41,8 +43,11 @@ class System:
             method (str, optional): The method to use for saving data ('REF' or 'TREE'). Default is 'TREE'.
         """
         # Define the path for saving the JSON file
-        path = f"/eos/user/j/jcapotor/RTDdata/calib/{self.systemName}_{method}"
-        pathToSaveFolder = f"/eos/user/j/jcapotor/RTDdata/calib/plots/{self.systemName}_{method}"
+        path = f"/eos/user/j/jcapotor/RTDdata/ProcessedData/TGrad/calib_test/{self.systemName}_{method}"
+        pathToSaveFolder = f"/eos/user/j/jcapotor/RTDdata/ProcessedData/TGrad/calib_test/{self.systemName}_{method}"
+
+        print(f"Data stored in: {path}")
+        print(f"Method used: {method} \n")
 
         # Determine the data to save based on the specified method
         if method.upper() == "REF":

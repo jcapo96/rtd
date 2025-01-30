@@ -1,0 +1,142 @@
+Date,ExactTime,StartTime,EndTime,Level,Configuration,Status,Action,Comments
+04/30/2024,X,12:20,13:25,7698,BASELINE,ACTIVE,HV,Ramping down Heizinger HV (Francesco Pietropaolo)
+04/30/2024,13:45,X,X,7698,BASELINE,ACTIVE,CRYO,Condenser is OFF (Filippo)
+04/30/2024,13:45,X,X,7968,BASELINE,ACTIVE,CRYO,Filling completed
+04/30/2024,13:58,X,X,7698,BASELINE,ACTIVE,CE,TPC ELECTRONICS OFF (Roger Huang)
+04/30/2024,X,11:00,15:49,7968,BASELINE,ACTIVE,PDS,DAPHNE ON with NO BIAS voltage: P = 0.132 A*V
+04/30/2024,14:18,X,X,7968,BASELINE,ACTIVE,IOL,Open the shutter (David Rivera)
+04/30/2024,X,14:20,14:26,7968,BASELINE,ACTIVE,IOL,Shine a weak green laser (CLASS 2) through the periscope into the detector
+04/30/2024,14:26,X,X,7968,BASELINE,ACTIVE,IOL,Shutter is closed (David Rivera)
+04/30/2024,X,13:50,14:50,7698,BASELINE,ACTIVE,IOL,LEDs to see periscope are ON and cameras ON
+04/30/2024,14:35,X,X,7698,BASELINE,ACTIVE,IOL,Lowering periscope just a bit slow to make sure that the mechanical portion on the feedthrough clears
+04/30/2024,14:46,X,X,7698,BASELINE,ACTIVE,CRYO,Filippo sends email about cryostat being completely filled
+04/30/2024,X,14:50,15:30,7698,BASELINE,ACTIVE,PDS,Taking a PDS run (Laura Pérez-Molina): BIAS on
+04/30/2024,X,15:31,15:36,7698,BASELINE,ACTIVE,PRM,Taking a PrM run (Wenjie Wu)
+04/30/2024,15:35,X,X,7960,BASELINE,ACTIVE,CRYO,Liquid level went below 7968. From now on: 7960
+04/30/2024,15:49,X,X,7960,BASELINE,ACTIVE,PDS,DAPHNE is turned OFF (Manuel Arroyave)
+04/30/2024,16:23,X,X,7960,BASELINE,ACTIVE,CRYO,Cameras and LEDs OFF (Anselmo Cervera)
+04/30/2024,17:02,X,X,7960,BASELINE,ACTIVE,CRYO,Liquid level is continuously decreasing as GA on poisiton 9 is increasing in temperature
+04/30/2024,18:03,X,X,7960,BASELINE,ACTIVE,OTHER,Stopped Running Jordi App
+04/30/2024,X,18:20,18:22,7960,BASELINE,ACTIVE,PRM,Purity Monitor run (Wenjie)
+04/30/2024,18:43,X,X,7960,BASELINE,ACTIVE,CRYO,Turn off camera heaters
+04/30/2024,18:45,X,X,7960,BASELINE,ACTIVE,CRYO,"At this point, every system was off. Full quieteness."
+04/30/2024,X,18:45,8:23,7960,BASELINE,ACTIVE,OTHER,POFF with BASELINE configuration: all night long
+04/30/2024,20:27,X,X,7960,BASELINE,ACTIVE,OTHER,Temperature of GA position 9 has increased up to 91K indicating the level has decreased significantly
+05/01/2024,7:25,X,X,7960,BASELINE,ACTIVE,OTHER,Temperature of GA position 9 has increased up to 95K indicating the level has decreased significantly during the night
+05/01/2024,X,8:24,9:43,7960,BASELINE,INACTIVE,SWAP,Changing the connectors to SWITCHED configuration
+05/01/2024,X,9:45,10:55,7960,SWITCHED,ACTIVE,OTHER,POFF with SWITCHED configuration
+05/01/2024,X,10:51,10:54,7960,SWITCHED,ACTIVE,PRM,Purity Monitor run (Wenjie)
+05/01/2024,X,10:56,11:32,7960,SWITCHED,INACTIVE,SWAP,Changing the connectors to PRECISION configuration
+05/01/2024,X,11:33,12:01,7960,PRECISION,ACTIVE,OTHER,POFF with PRECISION configuration
+05/01/2024,X,12:01,13:01,7960,PRECISION,ACTIVE,PDS,DAPHNE is turned ON - NO bias voltage (Anselmo Cervera)
+05/01/2024,X,13:01,14:00,7960,PRECISION,ACTIVE,CRYO,Cameras & camera heaters are turned ON (Anselmo Cervera)
+05/01/2024,X,14:01,14:59,7960,PRECISION,ACTIVE,OTHER,POFF with PRECISION configuration
+05/01/2024,X,15:03,17:05,7960,PRECISION,ACTIVE,CE,LOWER CE ON (Roger Huang)
+05/01/2024,X,17:05,19:05,7960,PRECISION,ACTIVE,CE,LOWER CE OFF & UPPER CE ON (Roger Huang)
+05/01/2024,X,19:05,21:50,7960,PRECISION,ACTIVE,OTHER,POFF with PRECISION configuration
+05/01/2024,X,21:51,22:20,7960,PRECISION,ACTIVE,PDS,DAPHNE is turned ON - NO bias voltage (Anselmo Cervera)
+05/01/2024,X,22:28,23:04,7960,PRECISION,ACTIVE,CRYO,Cameras & camera heaters are turned ON (Anselmo Cervera)
+05/01/2024,X,23:05,8:15,7960,PRECISION,ACTIVE,OTHER,POFF with PRECISION configuration: all night long
+05/02/2024,8:15,X,X,7960,PRECISION,ACTIVE,CRYO,Cameras & camera heaters are turned ON (Xavier Pons)
+05/02/2024,X,8:21,8:37,7960,PRECISION,INACTIVE,SWAP,Changing the connectors to PUMPS configuration
+05/02/2024,X,8:41,8:46,7960,PUMPS,ACTIVE,PRM,Purity Monitor run (Wenjie)
+05/02/2024,X,8:55,9:27,7960,PUMPS,INACTIVE,SWAP,Changing the connectors to PIPES configuration
+05/02/2024,9:30,X,X,7960,PIPES,ACTIVE,PDS,DAPHNE is turned ON - NO bias voltage (Anselmo Cervera)
+05/02/2024,X,9:33,12:11,7698,PIPES,ACTIVE,PDS,Taking a PDS run (Laura Pérez-Molina): BIAS on
+05/02/2024,X,9:33,10:09,7698,PIPES,ACTIVE,PDS,Taking a PDS run (Laura Pérez-Molina): 107 is OVER
+05/02/2024,10:08,X,X,7960,PIPES,ACTIVE,CE,ALL CE ON (Roger Huang)
+05/02/2024,X,9:33,10:41,7698,PIPES,ACTIVE,PDS,Taking a PDS run (Laura Pérez-Molina): 104 and 105 are OVER
+05/02/2024,13:11,X,X,7960,PIPES,INACTIVE,SWAP,Changed the connectors to FINAL configuration (Xavier Pons)
+05/03/2024,X,9:01,9:06,7960,FINAL,ACTIVE,PRM,Purity Monitor run (Wenjie)
+05/03/2024,X,9:55,10:00,7960,FINAL,ACTIVE,PRM,Purity Monitor run (Wenjie)
+05/03/2024,13:30,X,X,7960,FINAL,ACTIVE,CRYO,Recirculation ON: Wenjie mentions it got stable by 13:30.
+05/03/2024,X,13:56,14:03,7960,FINAL,ACTIVE,PRM,Purity Monitor run (Wenjie)
+05/03/2024,X,14:04,15:48,7960,FINAL,ACTIVE,PDS,Taking a PDS run (Laura Pérez-Molina): BIAS on
+05/03/2024,X,15:58,16:03,7960,FINAL,ACTIVE,PRM,Purity Monitor run (Wenjie)
+05/03/2024,X,15:58,16:03,7960,FINAL,ACTIVE,PRM,Purity Monitor run (Wenjie)
+05/03/2024,X,17:57,18:03,7960,FINAL,ACTIVE,PRM,Purity Monitor run (Wenjie)
+05/03/2024,X,19:42,19:50,7960,FINAL,ACTIVE,PRM,Purity Monitor run (Wenjie)
+05/04/2024,X,8:00,8:06,7960,FINAL,ACTIVE,PRM,Purity Monitor run (Wenjie)
+05/04/2024,X,13:03,13:10,7960,FINAL,ACTIVE,PRM,Purity Monitor run (Wenjie)
+05/05/2024,X,9:06,9:15,7960,FINAL,ACTIVE,PRM,Purity Monitor run (Wenjie)
+05/05/2024,X,11:57,12:03,7960,FINAL,ACTIVE,PRM,Purity Monitor run (Wenjie)
+05/05/2024,X,20:30,20:33,7960,FINAL,ACTIVE,PRM,Purity Monitor run (Wenjie)
+05/06/2024,X,8:58,9:06,7960,FINAL,ACTIVE,PRM,Purity Monitor run (Wenjie)
+05/06/2024,X,14:51,15:40,7960,FINAL,INACTIVE,CE,All sensors are TURNED OFF for CE noise tests (Xavier Pons)
+05/07/2024,X,8:49,9:07,7960,FINAL,ACTIVE,PRM,Purity Monitor run (Wenjie)
+05/10/2024,X,12:13,,,FINAL,ACTIVE,HV,APA bias voltage ramp up
+05/30/2024,10:03,X,X,7960,BASELINE,INACTIVE,SWAP,Changed the connectors to BASELINE configuration (Xavier Pons)
+05/30/2024,12:57,X,X,7960,BASELINE,ACTIVE,HV,Reduced the HV from 180kV to 150V
+05/30/2024,13:05,X,X,7960,BASELINE,ACTIVE,HV,Reduced the HV from 150kV to 0V
+05/30/2024,13:19,X,X,7960,BASELINE,ACTIVE,HV,Ramping up HV to 180kV
+05/30/2024,10:50,X,X,7960,BASELINE,ACTIVE,CRYO,Started recirculation again (Wenjie says)
+09/18/2024,,10:40,10:50,7960,TGRAD_SWAPPED,INACTIVE,SWAP,Changing connectors to TGRAD_SWAPPED configuration
+09/18/2024,,10:50,11:53,7960,TGRAD_SWAPPED,ACTIVE,OTHER,Taking TGrad Profiles with TGRAD_SWAPPED configuration
+09/18/2024,,11:54,11:56,7960,BASELINE,INACTIVE,SWAP,Changing connectors to BASELINE configuration
+09/18/2024,,11:57,12:20,7960,BASELINE,ACTIVE,OTHER,Taking TGrad Profiles with BASELINE configuration
+09/18/2024,,12:20,12:22,7960,TGRAD_SWAPPED,INACTIVE,SWAP,Changing connectors to TGRAD_SWAPPED configuration
+09/18/2024,,12:22,12:55,7960,TGRAD_SWAPPED,ACTIVE,OTHER,Taking TGrad Profiles with TGRAD_SWAPPED configuration
+09/18/2024,,12:56,12:58,7960,BASELINE,INACTIVE,SWAP,Changing connectors to BASELINE configuration
+09/18/2024,,12:59,13:04,7960,BASELINE,ACTIVE,OTHER,Taking TGrad Profiles with BASELINE configuration
+09/18/2024,,13:05,13:07,7960,TGRAD_INTERCHANGED,INACTIVE,SWAP,Changing connectors to TGRAD_INTERCHANGED configuration
+09/18/2024,,13:08,15:18,7960,TGRAD_INTERCHANGED,ACTIVE,OTHER,Taking TGrad Profiles with TGRAD_INTERCHANGED configuration
+09/18/2024,,15:20,15:22,7960,BASELINE,INACTIVE,SWAP,Changing connectors to BASELINE configuration
+09/18/2024,,15:25,17:15,7960,BASELINE,ACTIVE,OTHER,Taking TGrad Profiles with BASELINE configuration
+09/18/2024,,17:15,18:30,7960,BASELINE,INACTIVE,SWAP,Changing connectors to BASELINE configuration
+09/18/2024,,18:30,10:41,7960,BASELINE,ACTIVE,OTHER,Taking TGrad Profiles with BASELINE configuration
+09/19/2024,,10:42,11:03,7960,APA,INACTIVE,SWAP,Changing connectors to APA configuration
+09/19/2024,,11:03,15:02,7960,APA,ACTIVE,OTHER,Taking APA Profiles with APA configuration
+09/19/2024,,15:02,15:13,7960,CURRENT1-1,INACTIVE,SWAP,Changing connectors to CURRENT1-1 configuration
+09/19/2024,,15:13,15:20,7960,CURRENT1-1,ACTIVE,OTHER,Taking CURRENT1-1
+09/19/2024,,15:20,15:21,7960,CURRENT1-2,INACTIVE,SWAP,Changing connectors to CURRENT1-2 configuration
+09/19/2024,,15:21,15:28,7960,CURRENT1-2,ACTIVE,OTHER,Taking CURRENT1-2
+09/19/2024,,15:28,15:30,7960,CURRENT1-1,INACTIVE,SWAP,Changing connectors to CURRENT1-1 configuration
+09/19/2024,,15:30,15:36,7960,CURRENT1-1,ACTIVE,OTHER,Taking CURRENT1-1
+09/19/2024,,15:37,15:38,7960,CURRENT1-3,INACTIVE,SWAP,Changing connectors to CURRENT1-1 configuration
+09/19/2024,,15:38,15:45,7960,CURRENT1-3,ACTIVE,OTHER,Taking CURRENT1-3
+09/19/2024,,15:45,15:47,7960,CURRENT1-1,INACTIVE,SWAP,Changing connectors to CURRENT1-1 configuration
+09/19/2024,,15:47,16:00,7960,CURRENT1-1,ACTIVE,OTHER,Taking CURRENT1-1
+09/19/2024,,16:00,16:03,7960,CURRENT1-4,INACTIVE,SWAP,Changing connectors to CURRENT1-4 configuration
+09/19/2024,,16:04,16:16,7960,CURRENT1-4,ACTIVE,OTHER,Taking CURRENT1-4
+09/19/2024,,16:16,16:18,7960,CURRENT1-1,INACTIVE,SWAP,Changing connectors to CURRENT1-1 configuration
+09/19/2024,,16:18,16:26,7960,CURRENT1-1,ACTIVE,OTHER,Taking CURRENT1-1
+09/19/2024,,16:00,16:56,7960,NOTHING,INACTIVE,OTHER,TRYING TO MAKE THE CURRENT PCB WORK
+09/19/2024,,16:58,17:00,7960,CURRENT2-1,INACTIVE,SWAP,Changing connectors to CURRENT2-1 configuration
+09/19/2024,,17:00,17:16,7960,CURRENT2-1,ACTIVE,OTHER,Taking CURRENT2-1
+09/19/2024,,17:16,17:17,7960,CURRENT1-1,INACTIVE,SWAP,Changing connectors to CURRENT1-1 configuration
+09/19/2024,,17:17,17:48,7960,CURRENT1-1,ACTIVE,OTHER,Taking CURRENT1-1
+09/19/2024,,17:48,17:49,7960,CURRENT2-2,INACTIVE,SWAP,Changing connectors to CURRENT2-2 configuration
+09/19/2024,,17:49,18:03,7960,CURRENT2-2,ACTIVE,OTHER,Taking CURRENT2-2
+09/19/2024,,18:03,18:04,7960,CURRENT1-1,INACTIVE,SWAP,Changing connectors to CURRENT1-1 configuration
+09/19/2024,,18:05,18:14,7960,CURRENT1-1,ACTIVE,OTHER,Taking CURRENT1-1
+09/19/2024,,18:14,18:15,7960,CURRENT2-3,INACTIVE,SWAP,Changing connectors to CURRENT2-3 configuration
+09/19/2024,,18:16,18:34,7960,CURRENT2-2,ACTIVE,OTHER,Taking CURRENT2-2
+09/19/2024,,18:34,18:35,7960,CURRENT1-1,INACTIVE,SWAP,Changing connectors to CURRENT1-1 configuration
+09/19/2024,,18:35,18:43,7960,CURRENT1-1,ACTIVE,OTHER,Taking CURRENT1-1
+09/19/2024,,18:43,18:44,7960,CURRENT2-4,INACTIVE,SWAP,Changing connectors to CURRENT2-4 configuration
+09/19/2024,,18:44,18:50,7960,CURRENT2-4,ACTIVE,OTHER,Taking CURRENT2-4
+09/19/2024,,18:50,18:51,7960,APA,INACTIVE,SWAP,Changing connectors to APA configuration
+09/19/2024,,18:51,12:00,7960,APA,ACTIVE,OTHER,Taking APA Profiles with APA configuration
+09/20/2024,,12:03,12:43,7960,APA,INACTIVE,OTHER,"Xavier is swapping the Power Supplies so now, the TMS one is independent. The new power supply is installed."
+09/20/2024,,12:43,12:52,7960,APA,ACTIVE,OTHER,Taking APA Profiles with APA configuration
+09/20/2024,,12:52,12:54,7960,OFFSET1.1-1.2,INACTIVE,SWAP,Changing to OFFSET1.1-1.2
+09/20/2024,,12:43,13:57,7960,OFFSET1.1-1.2,ACTIVE,OTHER,Taking OFFSET1.1-1.2
+09/20/2024,,13:58,13:59,7960,OFFSET1.1-2.1,INACTIVE,SWAP,Changing to OFFSET1.1-2.1
+09/20/2024,,14:00,14:10,7960,OFFSET1.1-2.1,ACTIVE,OTHER,Taking OFFSET1.1-2.1
+09/20/2024,,14:10,14:13,7960,OFFSET1.1-3.1,INACTIVE,SWAP,Changing to OFFSET1.1-3.1
+09/20/2024,,14:13,14:22,7960,OFFSET1.1-3.1,ACTIVE,OTHER,Taking OFFSET1.1-3.1
+09/20/2024,,14:22,14:25,7960,OFFSET1.1-4.1,INACTIVE,SWAP,Changing to OFFSET1.1-4.1
+09/20/2024,,14:25,14:31,7960,OFFSET1.1-4.1,ACTIVE,OTHER,Taking OFFSET1.1-4.1
+09/20/2024,,14:31,14:50,7960,BASELINE,INACTIVE,SWAP,Changing to BASELINE
+09/20/2024,,14:50,15:39,7960,BASELINE,ACTIVE,OTHER,Taking TGrad Profiles with BASELINE configuration
+10/11/2024,,15:51,16:05,7960,OCTOBER,INACTIVE,SWAP,Changed the connectors to OCTOBER configuration (Anselmo)
+10/11/2024,,16:05,,7960,OCTOBER,ACTIVE,OTHER,Taking Data with OCTOBER configuration
+10/14/2024,,15:37,15:38,7960,OCTOBER,ACTIVE,CE,Roger Huang: Turned everything off and then everything on few seconds (~10 seconds) later.
+10/14/2024,,15:45,16:20,7960,OCTOBER,ACTIVE,CE,Roger Huang: Powered everything off and then on ~35 minutes later.
+11/29/2024,11:38,,,,OCTOBER,ACTIVE,HV,Christos: Turning HV to zero after having operating it at 259 kV and then 100 kV
+11/29/2024,23:00,,,,OCTOBER,ACTIVE,CE,Roger Huang: Truning CE OFF for the whole weekend until the end of second pumps off operation starting next monday
+12/02/2024,12:00,,,,OCTOBER,ACTIVE,CRYO,Filippo says recirculation is OFF. CE is also OFF and tests are being carried out with PDS
+12/03/2024,,11:45,12:01,7960,OCTOBER,INACTIVE,SWAP,Changing the connectors to EMPTY configuration (Jordi)
+12/03/2024,,12:01,,7960,EMPTY,ACTIVE,OTHER,Taking data with EMPTY configuration
+12/03/2024,14:30,,,7960,EMPTY,ACTIVE,CRYO,Recirculation ON: Filippo sends email
+12/03/2024,17:32,,,7960,EMPTY,ACTIVE,CE,ALL CE ON (Roger Huang)

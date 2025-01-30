@@ -1,9 +1,10 @@
 import ROOT
 import os, array, tqdm, json
-from datetime import datetime, timedelta
+import datetime
 from src.data.retrieveData import access
 import pandas as pd
 import numpy as np
+import pytz
 
 class MakeData():
     def __init__(self, detector=None, system=None, sensors=None, sensorIds=None, all=False,
@@ -30,6 +31,15 @@ class MakeData():
 
         self.ref = ref
         self.configuration = configuration
+
+        if self.startTime is None:
+            self.startTime = "00:00:00"
+        if self.endTime is None:
+            self.endTime = "23:59:59"
+        if self.endDay is None:
+            self.endDay = self.startDay
+
+
     def loadSlowControlWebMapping(self):
         """
         Loads the mapping information from an external source into the SlowControlWebMapping attribute.
@@ -47,19 +57,34 @@ class MakeData():
         return self
 
     def makeClock(self):
-        changeDate = datetime.strptime(f"{self.startDay.split('-')[0]}-03-31 02:00:00", "%Y-%m-%d %H:%M:%S").timestamp()
-        if (self.startDay is not None) and (self.endDay is not None):
-            startDatetime = datetime.strptime(f"{self.startDay} {self.startTime}", "%Y-%m-%d %H:%M:%S").timestamp()
-            endDatetime = datetime.strptime(f"{self.endDay} {self.endTime}", "%Y-%m-%d %H:%M:%S").timestamp()
-        elif (self.startDay is not None) and (self.startTime is None) and (self.endDay is None):
-            self.startTime = "00:00:00"
-            startDatetime = datetime.strptime(f"{self.startDay} {self.startTime}", "%Y-%m-%d %H:%M:%S").timestamp()
-            endDatetime = datetime.strptime(f"{self.startDay} {self.startTime}", "%Y-%m-%d %H:%M:%S").timestamp() + 60*60*24
-        if startDatetime > changeDate:
-            startDatetime += 0
-        if endDatetime > changeDate:
-            endDatetime += 0
-        self.ticks = np.arange(startDatetime, endDatetime+1, self.clockTick) #have to add +1 to endDate because of python syntax
+        # changeDate = datetime.datetime.strptime(f"{self.startDay.split('-')[0]}-03-31 02:00:00", "%Y-%m-%d %H:%M:%S").timestamp()
+        # if (self.startDay is not None) and (self.endDay is not None):
+        #     startDatetime = datetime.datetime.strptime(f"{self.startDay} {self.startTime}", "%Y-%m-%d %H:%M:%S").timestamp()
+        #     endDatetime = datetime.datetime.strptime(f"{self.endDay} {self.endTime}", "%Y-%m-%d %H:%M:%S").timestamp()
+        # elif (self.startDay is not None) and (self.startTime is None) and (self.endDay is None):
+        #     self.startTime = "00:00:00"
+        #     startDatetime = datetime.datetime.strptime(f"{self.startDay} {self.startTime}", "%Y-%m-%d %H:%M:%S").timestamp()
+        #     endDatetime = datetime.datetime.strptime(f"{self.startDay} {self.startTime}", "%Y-%m-%d %H:%M:%S").timestamp() + 60*60*24
+        # if startDatetime > changeDate:
+        #     startDatetime += 0
+        # if endDatetime > changeDate:
+        #     endDatetime += 0
+
+        # startDatetime = datetime.datetime.strptime(f"{self.startDay} {self.startTime}", "%Y-%m-%d %H:%M:%S").timestamp() + 60*60*2
+        # endDatetime = datetime.datetime.strptime(f"{self.endDay} {self.endTime}", "%Y-%m-%d %H:%M:%S").timestamp() + 60*60*2
+        start_datetime_string = f"{self.startDay} {self.startTime}"
+        start_datetime = datetime.datetime.strptime(start_datetime_string, "%Y-%m-%d %H:%M:%S")
+        gmt_timezone = pytz.timezone('GMT')
+        start_datetime_gmt = start_datetime.replace(tzinfo=gmt_timezone)
+        start_timestamp = start_datetime_gmt.timestamp()
+
+        end_datetime_string = f"{self.endDay} {self.endTime}"
+        end_datetime = datetime.datetime.strptime(end_datetime_string, "%Y-%m-%d %H:%M:%S")
+        gmt_timezone = pytz.timezone('GMT')
+        end_datetime_gmt = end_datetime.replace(tzinfo=gmt_timezone)
+        end_timestamp = end_datetime_gmt.timestamp()
+
+        self.ticks = np.arange(start_timestamp, end_timestamp+1, self.clockTick) #have to add +1 to endDate because of python syntax
         return self
 
     def selectSensors(self):
@@ -94,14 +119,14 @@ class MakeData():
         if self.startDay is not None:
             self.outputRootFileName += f"{self.startDay}_"
 
-        if self.startTime is not None:
-            self.outputRootFileName += f"{self.startTime}_"
+        # if self.startTime is not None:
+        #     self.outputRootFileName += f"{self.startTime}_"
 
         if self.endDay is not None:
             self.outputRootFileName += f"{self.endDay}_"
 
-        if self.endTime is not None:
-            self.outputRootFileName += f"{self.endTime}_"
+        # if self.endTime is not None:
+        #     self.outputRootFileName += f"{self.endTime}_"
 
         self.outputRootFileName += f"ctick{self.clockTick}_"
 

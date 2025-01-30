@@ -1,7 +1,7 @@
 import urllib.request, json, subprocess
 from datetime import timedelta
 import pandas as pd
-from datetime import datetime
+import datetime
 
 def convert_date_format(date_string):
     # Split the date string by '-'
@@ -66,9 +66,10 @@ def accessViaCache(elementId, startDay, endDay, startTime, endTime):
     if startDay is None:
         print("Error: You should provide a valid start date")
         return None
-
-    startDateTime = (datetime.strptime(f"{startDay} {startTime}", "%Y-%m-%d %H:%M:%S") - timedelta(hours=2)).strftime("%Y-%m-%d %H:%M:%S")
-    endDateTime = (datetime.strptime(f"{endDay} {endTime}", "%Y-%m-%d %H:%M:%S") - timedelta(hours=2)).strftime("%Y-%m-%d %H:%M:%S")
+    startDateTime = (datetime.datetime.strptime(f"{startDay} {startTime}", "%Y-%m-%d %H:%M:%S")).strftime("%Y-%m-%d %H:%M:%S")
+    endDateTime = (datetime.datetime.strptime(f"{endDay} {endTime}", "%Y-%m-%d %H:%M:%S")).strftime("%Y-%m-%d %H:%M:%S")
+    # startDateTime = (datetime.datetime.strptime(f"{startDay} {startTime}", "%Y-%m-%d %H:%M:%S")).strftime("%Y-%m-%d %H:%M:%S")
+    # endDateTime = (datetime.datetime.strptime(f"{endDay} {endTime}", "%Y-%m-%d %H:%M:%S")).strftime("%Y-%m-%d %H:%M:%S")
     startDay, startTime = startDateTime.split(" ")
     endDay, endTime = endDateTime.split(" ")
 
@@ -84,6 +85,7 @@ def accessViaCache(elementId, startDay, endDay, startTime, endTime):
 
     # Execute the curl command
     curl_output = subprocess.run(curl_command, capture_output=True, text=True)
+    print(curl_output)
 
     # Check if the curl command was successful
     if curl_output.returncode == 0:
@@ -91,6 +93,8 @@ def accessViaCache(elementId, startDay, endDay, startTime, endTime):
         data = json.loads(curl_output.stdout)
         data = pd.DataFrame(data.items(), columns=['epochTime', 'temp'])
         data['epochTime'] = data["epochTime"].astype("int64")/1000
+        # print(data["epochTime"][0])
+        # print(datetime.datetime.utcfromtimestamp(data["epochTime"][0]))
         return data
     else:
         print("Error: curl command failed")
@@ -116,6 +120,7 @@ def retrieveData(url):
     r = rr.read()
     # Parse the response as JSON
     res = json.loads(r)
+    print(res)
 
     # Convert JSON data to a DataFrame
     data = pd.DataFrame(res['records'])

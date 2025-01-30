@@ -1,5 +1,5 @@
-from src.calib.constructor.selection import Selection
-from src.calib.utils.logFile import LogFile
+from constructor.selection import Selection
+from utils.logFile import LogFile
 import numpy as np
 from tqdm import tqdm
 

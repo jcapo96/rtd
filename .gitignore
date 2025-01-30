@@ -2,3 +2,5 @@
 *.pdf
 *keys.json
 *venv
+*.pyc
+*__pycache__*

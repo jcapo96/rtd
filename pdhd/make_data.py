@@ -10,15 +10,16 @@ from datetime import datetime, timedelta
 import os
 
 system = "tgrad"
-allBool = False
+allBool = True
 today = datetime.now().strftime('%y-%m-%d')
 path = "/eos/user/j/jcapotor/PDHDdata/"
 ref = "40525"
+configuration = "baseline"
 
 dates = []
 today = datetime.now()
-start_date = datetime(today.year, 4, 30)
-end_date = datetime.now()
+start_date = datetime(2024, 9, 19)
+end_date = datetime(2024, 9, 21)
 while start_date <= end_date:
     dates.append(start_date)
     start_date += timedelta(days=1)
@@ -36,7 +37,7 @@ for date in dates:
                     startDay=date.strftime('%Y-%m-%d'),
                     clockTick=60,
                     pathToSaveData=F"/eos/user/j/jcapotor/PDHDdata/{system}/{date.strftime('%B')}{date.year}/",
-                    ref=ref, FROM_CERN=True)
+                    ref=ref, FROM_CERN=True, configuration=configuration)
     m.make()
 
 # date = start_date

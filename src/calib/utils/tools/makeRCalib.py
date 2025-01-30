@@ -16,9 +16,9 @@ class ReadoutCalib():
 
     def makeIFIC(self, date):
         tini = 30
-        results, resultsErr, channels = [0], [0], [7]
+        results, resultsErr, channels = [0], [0], [1]
         if "14" in date or "16" in date:
-            firstChannel, nChannels = 6, 12
+            firstChannel, nChannels = 0, 12
         elif "17" in date:
             firstChannel, nChannels = 0, 6
         for channelNumber in range(2, nChannels+1):
@@ -121,4 +121,5 @@ class ReadoutCalib():
     def load(self):
         with open(f"{self.outputFileName}", "r") as f:
             self.data = pd.DataFrame.from_dict(json.load(f))
+        print(f"Loaded data: {self.data}")
         return self

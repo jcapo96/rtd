@@ -34,7 +34,9 @@ class Selection:
             Selection: Instance of Selection with updated calibration constants and errors.
         """
         # Iterate over runs
+        print(f"Computing calibration constants with respect to {ref}")
         for nrun, run in enumerate(self.runs.values()):
+            print(f"Processing run {nrun}")
             # Compute offsets for the reference
             run.compute_offset(ref=ref)
             run.compute_rcal(ref=ref)

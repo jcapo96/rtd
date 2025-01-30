@@ -1,4 +1,4 @@
-from src.data.retrieveData import accessTools
+from . import accessTools
 
 class Access():
     """Connects to the database and retrieves data for the specified element.

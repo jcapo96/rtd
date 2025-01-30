@@ -1,5 +1,5 @@
-from src.calib.utils.runFunctions import read_datafile
-from src.calib.utils.tools.makeRCalib import ReadoutCalib
+from utils.runFunctions import read_datafile
+from utils.tools.makeRCalib import ReadoutCalib
 import pandas as pd
 
 class Run:
@@ -44,8 +44,15 @@ class Run:
         return self
 
     def compute_rcal(self, ref):
-        readout = ReadoutCalib(readout="IFIC").load()
+        print(f"Computing IFIC readout calib with respect to {ref}")
+
+        readout = ReadoutCalib(readout="IFIC")
+        readout.save()
+        readout.load()
+        print(f"Channels to correct: {self.channels.items()} \n")
         names = [key for key, value in self.channels.items() if value in readout.data.columns]
+        print(f"Readout names: {names}")
+        print(f"Readout data: {readout.data}")
         readout.data.columns = names
         roffset = readout.data.sub(readout.data[ref], axis=0)
         self.roffset = roffset

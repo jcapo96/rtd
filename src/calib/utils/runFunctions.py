@@ -1,4 +1,4 @@
-from rtd.src.calib.utils.tools.dataTools import time_to_seconds
+from utils.tools.dataTools import time_to_seconds
 import pandas as pd
 import os, glob
 
@@ -15,8 +15,10 @@ def read_datafile(row):
     try:
         path = "/eos/user/j/jcapotor/RTDdata"
         text_file = glob.glob(os.path.join(path, "**", row["Filename"] + ".txt"), recursive=True)
+        print(f"Reading data file: {text_file[0]} \n")
         path_to_file = text_file[0]
         data = pd.read_csv(path_to_file, sep='\t', header=None)
+        print(f"Data in data file: {data.head()}")
         names = get_file_header(row)
         data.columns = names.keys()
         data["timeStamp"] = (data["Date"] + "-" + data["Time"]).apply(time_to_seconds)
@@ -38,7 +40,7 @@ def get_file_header(row):
         list: A list of column names extracted from the row dictionary.
     """
     # Generate column names based on the number of columns in the row
-    columns = [f"S{i}" for i in range(7, 21)]
+    columns = [f"S{i}" for i in range(1, 15)]
 
     # Initialize list to store column names
     names = {"Date":"Date", "Time":"Time"}
@@ -48,5 +50,5 @@ def get_file_header(row):
         # Check if the value of the column is a string (i.e., it represents a column name)
         if isinstance(row[col], str):
             names[row[col]] = col.lower()
-
+    print(f"Column names: {names}")
     return names
