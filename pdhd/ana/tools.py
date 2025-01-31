@@ -28,9 +28,25 @@ def make_poff(date_end, integration_time, ref, save_path=None):
         print("Not possible: Not the same configuration within the POFF calib window.")
     return poff_calib
 
-def make_tgrad_profile(date_ini, date_end,
-                       path_to_calib="/eos/user/j/jcapotor/RTDdata/calib/TGrad/POFF/poff_2024-12-03 13:25:00_2024-12-03 14:25:00.pkl",
-                       ref="40525", save_path=None):
+def make_tgrad_profile( data=None, data_err=None,
+                        date_ini=None, date_end=None,
+                        path_to_calib="/eos/user/j/jcapotor/RTDdata/calib/TGrad/POFF/poff_2024-12-03 13:25:00_2024-12-03 14:25:00.pkl",
+                        ref="40525", save_path=None
+                        ):
+    if data is None and data_err is None:
+        if date_ini is not None and date_end is not None:
+            data, data_err = utils.load_data(date_ini, date_end)
+        else:
+            print("Please provide a date_ini and date_end.")
+    elif (data is not None and data_err is None):
+        date_ini, date_end = min(data.index), max(data.index)
+        data, data_err = utils.load_data(date_ini, date_end)
+    elif (data is None and data_err is not None):
+        date_ini, date_end = min(data_err.index), max(data_err.index)
+        data, data_err = utils.load_data(date_ini, date_end)
+    elif (data is not None and data_err is not None):
+        date_ini, date_end = min(data.index), max(data.index)
+
     calib = utils.load_calib(path=path_to_calib)[ref]
     mapping_end = utils.load_mapping(date=date_end)
     selection_end = mapping_end.loc[(mapping_end["SYSTEM"]=="TGRAD")]
@@ -39,8 +55,6 @@ def make_tgrad_profile(date_ini, date_end,
     equal = (selection_end["SC-ID"].to_list() == selection_ini["SC-ID"].to_list())
 
     if equal:
-        data, data_err = utils.load_data(date_ini, date_end)
-        #print(selection_end)
         selection = selection_end["SC-ID"].to_list()
         height = selection_end["Y"].to_numpy()
         sensor_id = selection_end["CAL-ID"].astype(int).astype(str).to_numpy()
