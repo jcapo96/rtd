@@ -37,3 +37,14 @@ def load_data(tini, tend):
     data = data.loc[(data.index>tini)&(data.index<tend)]
     data_err = data_err.loc[(data_err.index>tini)&(data_err.index<tend)]
     return data, data_err
+
+def load_current_corr(path="/eos/user/j/jcapotor/DUNE-IFIC/Experiments/ProtoDUNE-HD/Operation/Data/2024-7-1_2024-7-6_current_correction.csv"):
+    current_corr = pd.read_csv(path, header=0)
+    current_corr = current_corr.set_index("Unnamed: 0")
+    return current_corr
+
+def load_cfd_sim(path="/eos/user/j/jcapotor/DUNE-IFIC/Experiments/ProtoDUNE-HD/CFD/ProtoDUNE-II Temperature Profiles Pumps Off CE Off.csv"):
+    data = pd.read_csv(path, header=0)
+    data.columns = ["Y", "temp", "temp_err"]
+    data["Y"] = 1000*data["Y"]
+    return data

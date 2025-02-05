@@ -23,5 +23,5 @@ def plot_temp_evolution(
                   yerr=data_plot_err[channel].to_numpy(),
                   fmt=marker, linestyle=linestyle, color=color,
                   label=f"{channel}")
-    plt.xticks(rotation=90)
+    plt.xticks(rotation=45)
     return axes
