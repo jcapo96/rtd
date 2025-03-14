@@ -14,7 +14,7 @@ def load_logfile(path="/afs/cern.ch/work/j/jcapotor/software/rtd/pdhd/ana/mappin
 def load_mapping(path="/afs/cern.ch/work/j/jcapotor/software/rtd/pdhd/ana/mapping/mapping.csv", date=None):
     configurations = load_configurations()
     configuration = configurations.loc[(configurations["Start"]<date)&(configurations["End"]>date)]["Configuration"].values[0]
-    #print(fr"Configuration: {configuration}")
+    print(fr"Configuration: {configuration}")
     path_to_mapping = fr"/afs/cern.ch/work/j/jcapotor/software/rtd/pdhd/ana/mapping/{configuration}.csv"
     mapping = pd.read_csv(path_to_mapping, header=0)
     return mapping
