@@ -25,8 +25,8 @@ def load_calib(path="/eos/user/j/jcapotor/RTDdata/calib/TGrad/LAR2023/lar2023_tr
     return calib
 
 def load_data(tini, tend):
-    data = pd.read_csv("/eos/user/j/jcapotor/PDHDdata/all_data.csv")
-    data_err = pd.read_csv("/eos/user/j/jcapotor/PDHDdata/all_data_err.csv")
+    data = pd.read_csv("/eos/user/j/jcapotor/PDHDdata/all_data_new.csv")
+    data_err = pd.read_csv("/eos/user/j/jcapotor/PDHDdata/all_data_err_new.csv")
 
     data = data.set_index("Unnamed: 0")
     data.index = pd.to_datetime(data.index)

@@ -10,24 +10,24 @@ if __name__ == "__main__":
         sys.exit(1)
 
     date = sys.argv[1]
-    dataFrame = pd.DataFrame()
+    dataFrame_data = pd.DataFrame()
+    dataFrame_err = pd.DataFrame()
     for index, row in tqdm.tqdm(mapping.iterrows(), total=len(mapping), desc=fr"Processing {date}"):
-        # try:
-        #     int(row["CAL-ID"])
-        # except:
-        #     continue
         curl_command = curl_command = ['curl', f'http://epdtdi-dcs-extract.cern.ch:8080/day/{date}/{row["DCS-ID"]}']
         curl_output = subprocess.run(curl_command, capture_output=True, text=True)
         data = json.loads(curl_output.stdout)
         try:
             df = pd.DataFrame.from_dict(data, orient="index", columns=[str(row["SC-ID"])])
             df.index = pd.to_datetime(pd.to_numeric(df.index), unit='ms') + datetime.timedelta(hours=2)
-            dataFrame = pd.concat([dataFrame, df])
+            df_data = df.resample("1min").mean()
+            df_err = df.resample("1min").std()
+            dataFrame_data = pd.concat([dataFrame_data, df_data])
+            dataFrame_err = pd.concat([dataFrame_err, df_err])
+            del df_data
+            del df_err
         except:
             continue
-    dataFrame.to_csv(fr'/eos/user/j/jcapotor/PDHDdata/data/{datetime.datetime.strftime(date, "%Y-%m-%d")}.csv')
-    dataFrame = dataFrame.set_index("Unnamed: 0")
-    dataFrame_data = dataFrame.resample("1min").mean()
-    dataFrame_err = dataFrame.resample("1min").std()
-    dataFrame_data.to_csv(fr'/eos/user/j/jcapotor/PDHDdata/data_1min/{datetime.datetime.strftime(date, "%Y-%m-%d")}.csv')
-    dataFrame_err.to_csv(fr'/eos/user/j/jcapotor/PDHDdata/data_1min/{datetime.datetime.strftime(date, "%Y-%m-%d")}_err.csv')
+    dataFrame_data = dataFrame_data.resample("1min").mean()
+    dataFrame_err = dataFrame_err.resample("1min").mean()
+    dataFrame_data.to_csv(fr'/eos/user/j/jcapotor/PDHDdata/data/{date}.csv')
+    dataFrame_err.to_csv(fr'/eos/user/j/jcapotor/PDHDdata/data/{date}_err.csv')

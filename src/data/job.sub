@@ -6,6 +6,6 @@ log = logs/$(date).log
 should_transfer_files = YES
 when_to_transfer_output = ON_EXIT
 transfer_input_files = retrieve_data.py, run_script.sh
-request_memory = 20000
+request_memory = 10000
 +MaxRuntime = 72000
 queue date from mapping/dates_to_extract.txt
