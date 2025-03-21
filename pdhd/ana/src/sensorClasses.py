@@ -1,6 +1,6 @@
 from src import baseClasses, muxClasses
 import pandas as pd
-import pickle
+import pickle, json
 
 class Sensor():
     def __init__(self, dataset, id):
@@ -8,6 +8,7 @@ class Sensor():
         self.id = id
         self.is_calib_corrected = False
         self.is_mux_corrected = {}
+        self.is_mux_equalized = {}
         self._info()
         self._data()
         self._coordinates()
@@ -27,7 +28,7 @@ class Sensor():
 
     def _coordinates(self):
         sensorCoordinates = pd.read_csv(f"/afs/cern.ch/work/j/jcapotor/software/rtd/pdhd/ana/mapping/baseline.csv", header=0)
-        sensorCoordinates = sensorCoordinates[["SYSTEM", "NAME", "CAL-ID", "W-CABLE", "FLANGE", "X", "Y", "Z"]]
+        sensorCoordinates = sensorCoordinates[["SYSTEM", "NAME", "BOARD", "CAL-ID", "W-CABLE", "FLANGE", "X", "Y", "Z"]]
         sensorCoordinates = sensorCoordinates.loc[sensorCoordinates["CAL-ID"]==self.id].reset_index(drop=True)
         if len(sensorCoordinates) == 0:
             sensorCoordinates = None
@@ -45,6 +46,7 @@ class Sensor():
 
     def _data(self):
         self.data = pd.Series()
+        self.err = pd.Series()
         for index, info in self.info.items():
             config = info["configInfo"]
             sensor = info["sensorInfo"]
@@ -53,10 +55,15 @@ class Sensor():
                 continue
             else:
                 dataConfig = channel.data.loc[(channel.data.index >= config["Start"]) & (channel.data.index <= config["End"])]
+                dataErrConfig = channel.err.loc[(channel.err.index >= config["Start"]) & (channel.err.index <= config["End"])]
                 self.data = pd.concat([df for df in [self.data, dataConfig] if not df.empty])
+                self.err = pd.concat([df for df in [self.err, dataErrConfig] if not df.empty])
         if len(self.data) == 0:
             self.data = None
-            print(f"ERROR: SensorID ({self.id}) data not found")
+            print(f"ERROR: Data for SensorID ({self.id}) data not found")
+        if len(self.err) == 0:
+            self.err = None
+            print(f"ERROR: Error data for SensorID ({self.id}) error not found")
         return self
 
     def tempCalibration(self, calibName="LAR2023_TREE_AVG", ref="40525"):
@@ -137,6 +144,50 @@ class Sensor():
                 else:
                     self.data = pd.concat([df for df in [self.data, dataConfig] if not df.empty])
                     self.is_mux_corrected[index] = {"config":config, "is_corrected":False}
+        if len(self.data) == 0:
+            self.data = None
+            print(f"ERROR: SensorID ({self.id}) data not found")
+        return self
+
+    def muxEqualization(self, equalizationName="FIRST_POFF_39644_39619_39614_40200_39607_39669", equalizationSumName="HP-OFFSETS"):
+        self.data = pd.Series()
+        indexOfCorrections = pd.read_excel(f"/eos/user/j/jcapotor/RTDdata/corrections/index_of_corrections.xlsx", header=0)
+        if equalizationName not in indexOfCorrections["Name"].values:
+            print(f"ERROR: Equalization ({equalizationName}) not found")
+        else:
+            correctionInfo = indexOfCorrections.loc[indexOfCorrections["Name"]==equalizationName].reset_index(drop=True)
+            correctionSumInfo = indexOfCorrections.loc[indexOfCorrections["Name"]==equalizationSumName].reset_index(drop=True)
+            with open(correctionInfo["Path"].values[0], "rb") as file:
+                correction = pickle.load(file)
+            self.equalizationInfo = correction
+            with open(correctionSumInfo["Path"].values[0], "rb") as file:
+                correctionSum = pickle.load(file)
+            self.equalizationSumInfo = correctionSum
+        for index, info in self.info.items():
+            config = info["configInfo"]
+            sensor = info["sensorInfo"]
+            boardNumber = sensor["BOARD"].values[0]
+            channel = baseClasses.Channel(self.dataset, sensor["SC-ID"].values[0])
+            mux = muxClasses.MUX(self.dataset, sensor["BOARD"].values[0])
+            if channel.data is None:
+                self.is_mux_equalized[index] = {"config":config, "is_corrected":False}
+                continue
+            else:
+                dataConfig = channel.data.loc[(channel.data.index >= config["Start"]) & (channel.data.index <= config["End"])]
+                try:
+                    boardNumber = int(boardNumber)
+                    if boardNumber not in correction.keys():
+                        self.is_mux_equalized[index] = {"config":config, "is_corrected":False}
+                        # print(f"ERROR: Board ({boardNumber}) not found in equalization ({equalizationName})")
+                        continue
+                    equalizationFactor = correction[boardNumber]
+                    equalizationSumFactor = correctionSum[boardNumber]
+                    dataConfig = abs(dataConfig/(mux.data*equalizationFactor)) - equalizationSumFactor*1e-3
+                    self.data = pd.concat([df for df in [self.data, dataConfig] if not df.empty])
+                    self.is_mux_equalized[index] = {"config":config, "is_corrected":True}
+                except:
+                    self.is_mux_equalized[index] = {"config":config, "is_corrected":False}
+                    continue
         if len(self.data) == 0:
             self.data = None
             print(f"ERROR: SensorID ({self.id}) data not found")

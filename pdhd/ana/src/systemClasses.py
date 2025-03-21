@@ -1,5 +1,6 @@
 from src import sensorClasses
 import pandas as pd
+from tqdm import tqdm
 
 class System():
     def __init__(self, dataset, name):
@@ -19,14 +20,26 @@ class System():
     def _data(self):
         self.sensors = {}
         if self.system is not None:
-            for index, row in self.system.iterrows():
+            for index, row in tqdm(self.system.iterrows(), desc="Initializing Sensors", total=len(self.system), unit="sensor"):
                 self.sensors[int(row["CAL-ID"])] = sensorClasses.Sensor(self.dataset, row["CAL-ID"])
         if len(self.sensors) > 0:
-            self.ids = self.sesnors.keys()
+            self.ids = self.sensors.keys()
+        return self
+
+
+    def muxEqualization(self, equalizationName="FIRST_POFF_39644_39619_39614_40200_39607_39669", equalizationSumName="HP-OFFSETS"):
+        if len(self.sensors) > 0:
+            for index, value in tqdm(self.sensors.items(), desc="Equalizing Sensors", unit="sensor"):
+                self.sensors[index] = value.muxEqualization(equalizationName=equalizationName, equalizationSumName=equalizationSumName)
         return self
 
     def tempCalibration(self, calibName="LAR2023_TREE_AVG", ref="40525"):
         if len(self.sensors)>0:
-            for index, value in self.sensors.items():
+            for index, value in tqdm(self.sensors.items(), desc=f"Calibrating Sensors - Calibration Name: {calibName}", unit="sensor"):
                 self.sensors[index] = value.tempCalibration(calibName=calibName, ref=ref)
+        return self
+
+    def calibrate(self, calibName="LAR2023_TREE_AVG", ref="40525", equalizationName="FIRST_POFF_39644_39619_39614_40200_39607_39669", equalizationSumName="HP-OFFSETS"):
+        self.muxEqualization(equalizationName=equalizationName, equalizationSumName=equalizationSumName)
+        self.tempCalibration(calibName=calibName, ref=ref)
         return self
