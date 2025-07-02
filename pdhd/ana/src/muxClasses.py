@@ -28,7 +28,7 @@ class MUX():
                 self.id = None
                 self.name = None
                 self.system = None
-                print(f"ERROR: Board ({self.boardNumber}) not found")
+                #print(f"ERROR: Board ({self.boardNumber}) not found")
         else:
             self.scid = None
             self.id = None
@@ -44,4 +44,15 @@ class MUX():
             else:
                 self.data = None
                 print(f"ERROR: Board ({self.scid}) not found")
+        return self
+
+    def correct(self):
+        if self.boardNumber == 1:
+            self.data = self.data
+        if self.boardNumber == 2:
+            self.data.loc[(self.data.index >= pd.Timestamp("2024-05-03 21:20:00"))&(self.data.index < pd.Timestamp("2024-05-04 12:45:00"))] -= 0.00004
+            self.data.loc[self.data.index >= pd.Timestamp("2024-05-10 15:00:00")] -= 0.00012
+            self.data.loc[self.data.index >= pd.Timestamp("2024-05-30 11:00:00")] += 0.00003
+            self.data.loc[(self.data.index >= pd.Timestamp("2024-05-31 16:35:00"))] -= 0.00005
+            self.data.loc[self.data.index >= pd.Timestamp("2024-06-11 17:00:00")] += 0.00007
         return self
