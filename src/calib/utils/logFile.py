@@ -30,7 +30,8 @@ class LogFile:
             data = worksheet.get_all_values()
             return pd.DataFrame(data[1:], columns=data[0])
         except Exception as e:
-            raise RuntimeError(f"An error occurred while downloading log file: {e}")
+            data = pd.read_csv("/Users/jcapo/cernbox/DUNE-IFIC/Software/rtd/src/calib/utils/logs/logfile_test.csv", header=0)
+            return data
 
     def select_files(self, **kwargs):
             """

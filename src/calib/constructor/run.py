@@ -36,11 +36,11 @@ class Run:
         t0 = self.t0 + t0
         tf = self.t0 + tf
         # Select data within the specified time window
-        data_cut = self.data.loc[(self.data["timeStamp"] > t0) & (self.data["timeStamp"] < tf)]
+        data_cut = self.data.loc[(self.data.index > t0) & (self.data.index < tf)]
         # Compute offsets relative to the reference sensor
-        offset = data_cut.drop(columns="timeStamp").sub(data_cut[ref], axis=0) * 1e3
+        offset = data_cut.sub(data_cut[ref], axis=0) * 1e3
         # Concatenate timestamps and offsets
-        self.offset = pd.concat([data_cut["timeStamp"], offset], axis=1)
+        self.offset = pd.concat([data_cut, offset], axis=1)
         return self
 
     def compute_rcal(self, ref):

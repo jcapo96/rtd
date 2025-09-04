@@ -12,22 +12,18 @@ def read_datafile(row):
     Returns:
         pandas.DataFrame: DataFrame containing the processed data.
     """
-    try:
-        path = "/eos/user/j/jcapotor/RTDdata"
-        text_file = glob.glob(os.path.join(path, "**", row["Filename"] + ".txt"), recursive=True)
-        print(f"Reading data file: {text_file[0]} \n")
-        path_to_file = text_file[0]
-        data = pd.read_csv(path_to_file, sep='\t', header=None)
-        print(f"Data in data file: {data.head()}")
-        names = get_file_header(row)
-        data.columns = names.keys()
-        data["timeStamp"] = (data["Date"] + "-" + data["Time"]).apply(time_to_seconds)
-        del data["Date"]
-        del data["Time"]
-        return data, names
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return pd.DataFrame()
+    path = "/Users/jcapo/cernbox/RTDdata"
+    text_file = glob.glob(os.path.join(path, "**", row["Filename"] + ".txt"), recursive=True)
+    print(f"Reading data file: {text_file[0]} \n")
+    path_to_file = text_file[0]
+    data = pd.read_csv(path_to_file, sep='\t', header=None)
+    print(f"Data in data file: {data.head()}")
+    names = get_file_header(row)
+    data.columns = names.keys()
+    data["timeStamp"] = (data["Date"] + "-" + data["Time"]).apply(time_to_seconds)
+    del data["Date"]
+    del data["Time"]
+    return data, names
 
 def get_file_header(row):
     """
@@ -47,8 +43,6 @@ def get_file_header(row):
 
     # Iterate over columns and add column names to the list
     for col in columns:
-        # Check if the value of the column is a string (i.e., it represents a column name)
-        if isinstance(row[col], str):
-            names[row[col]] = col.lower()
+        names[row[col]] = col.lower()
     print(f"Column names: {names}")
     return names

@@ -1,7 +1,7 @@
 import pandas as pd
 
 class LogFile():
-    def __init__(self, path="/afs/cern.ch/work/j/jcapotor/software/rtd/pdhd/ana/mapping/configurations.csv"):
+    def __init__(self, path="mapping/configurations.csv"):
         self.path = path
         self._read()
 
@@ -10,7 +10,7 @@ class LogFile():
         return self
 
 class Configuration():
-    def __init__(self, name, path="/afs/cern.ch/work/j/jcapotor/software/rtd/pdhd/ana/mapping"):
+    def __init__(self, name, path="mapping"):
         self.name = name
         self.path = path
         self._read()
@@ -20,7 +20,7 @@ class Configuration():
         return self
 
 class Data():
-    def __init__(self, path="/eos/user/j/jcapotor/PDHDdata"):
+    def __init__(self, path="/Users/jcapo/cernbox/PDHDdata"):
         self.path = path
         self._read()
 

@@ -13,7 +13,7 @@ class System():
         self._data()
 
     def _info(self):
-        self.system = pd.read_csv(f"/afs/cern.ch/work/j/jcapotor/software/rtd/pdhd/ana/mapping/baseline.csv", header=0)
+        self.system = pd.read_csv(f"mapping/baseline.csv", header=0)
         self.system = self.system.loc[self.system["SYSTEM"]==self.name].reset_index(drop=True)
         if len(self.system) == 0:
             self.system = None
@@ -29,7 +29,7 @@ class System():
             self.ids = self.sensors.keys()
         return self
 
-    def muxEqualization(self, equalizationName="FIRST_POFF_39644_39619_39614_40200_39607_39669", equalizationSumName="HP-OFFSETS"):
+    def muxEqualization(self, equalizationName="LAST_SUM", equalizationSumName="LAST_SUM"):
         if len(self.sensors) > 0:
             for index, value in tqdm(self.sensors.items(), desc=f"Equalizing {self.name} Sensors", unit="sensor"):
                 self.sensors[index] = value.muxEqualization(equalizationName=equalizationName, equalizationSumName=equalizationSumName)
@@ -47,7 +47,7 @@ class System():
                 self.sensors[index] = value.tempCalibration(calibName=calibName, ref=ref)
         return self
 
-    def calibrate(self, calibName="LAR2023_TREE_AVG", ref="40525", equalizationName="LAST_SUM", equalizationSumName="HP-OFFSETS"):
+    def calibrate(self, calibName="LAR2023_TREE_AVG", ref="40525", equalizationName="LAST_SUM", equalizationSumName="LAST_SUM"):
         self.muxEqualization(equalizationName=equalizationName, equalizationSumName=equalizationSumName)
         self.tempCalibration(calibName=calibName, ref=ref)
         return self

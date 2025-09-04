@@ -44,9 +44,9 @@ legend.edgecolor: black  # Frame color
 
 # === Line & Marker Styling ===
 lines.linewidth: 2
-lines.markersize: 2.5
+lines.markersize: 5
 lines.markeredgewidth: 1
-
+errorbar.capsize: 4
 # === Colormap (Colorblind-Friendly) ===
 image.cmap: viridis  # Better for scientific plots (alternative: 'cividis' or 'tab10')
 
