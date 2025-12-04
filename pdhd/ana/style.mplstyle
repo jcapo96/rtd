@@ -1,54 +1,96 @@
 # === Figure Settings ===
 figure.figsize: 6.5, 4.5  # Standard for publications (fits IEEE/Nature two-column format)
+figure.dpi: 300  # High resolution for publication quality
+savefig.dpi: 300  # High resolution when saving
 savefig.bbox: tight  # Remove extra white space when saving
+savefig.format: pdf  # Vector format for publication quality
+savefig.pad_inches: 0.1  # Small padding around figure
 
 # === Font Settings ===
 font.family: serif
-font.serif: Times New Roman, DejaVu Serif
+font.serif: Times New Roman, DejaVu Serif, Computer Modern
 font.size: 12  # Consistent font size for publications
+font.weight: normal
 
 # === Title & Label Formatting ===
-axes.titlesize: 16
+axes.titlesize: 14  # Slightly smaller for better proportion
 axes.titleweight: bold
-axes.titlepad: 10  # Adjust space between title and plot
+axes.titlepad: 6  # Reduced padding to keep plot centered
 axes.labelsize: 14  # Axis label size
-axes.labelpad: 8  # Space between axis labels and plot
+axes.labelpad: 8  # Reduced padding for better centering
+axes.labelweight: normal
 
 # === Tick Formatting ===
-xtick.labelsize: 12
-ytick.labelsize: 12
+xtick.labelsize: 11  # Slightly smaller for better proportion
+ytick.labelsize: 11
 xtick.direction: in  # Keep ticks inside the plot for a clean look
 ytick.direction: in
-xtick.major.size: 8
-ytick.major.size: 8
-xtick.minor.size: 4
-ytick.minor.size: 4
-xtick.major.width: 1  # Thin but visible ticks
-ytick.major.width: 1
-xtick.minor.width: 0.8
-ytick.minor.width: 0.8
-xtick.major.pad: 6  # Space between tick labels and plot
-ytick.major.pad: 6
+xtick.major.size: 6  # Smaller ticks for cleaner appearance
+ytick.major.size: 6
+xtick.minor.size: 3
+ytick.minor.size: 3
+xtick.major.width: 0.8  # Thinner ticks
+ytick.major.width: 0.8
+xtick.minor.width: 0.6
+ytick.minor.width: 0.6
+xtick.major.pad: 8  # More space between tick labels and plot
+ytick.major.pad: 8
+xtick.minor.pad: 6
+ytick.minor.pad: 6
+xtick.color: black
+ytick.color: black
 
 # === Grid Formatting (Subtle for Clarity) ===
-grid.linestyle: --
+grid.linestyle: --  # Dashed lines
 grid.linewidth: 0.5
-grid.color: grey
-grid.alpha: 0.5
+grid.color: lightgray  # Lighter for better readability
+grid.alpha: 0.3  # More subtle
 
 # === Legend Formatting ===
-legend.fontsize: 12
+legend.fontsize: 11  # Consistent with tick labels
 legend.frameon: True  # Include a frame for clarity
 legend.loc: best  # Auto-select best position
 legend.edgecolor: black  # Frame color
+legend.facecolor: white  # Background color
+legend.framealpha: 0.9  # Slight transparency
+legend.fancybox: False  # Clean rectangular frame
+legend.shadow: False  # No shadow for clean look
+legend.numpoints: 1  # Single marker in legend
+legend.scatterpoints: 1
+legend.columnspacing: 1.0  # Space between columns
+legend.handlelength: 2.0  # Length of legend handles
+legend.handletextpad: 0.8  # Space between handle and text
 
 # === Line & Marker Styling ===
-lines.linewidth: 2
-lines.markersize: 5
-lines.markeredgewidth: 1
-errorbar.capsize: 4
+lines.linewidth: 1.5  # Thinner lines for cleaner look
+lines.markersize: 4  # Smaller markers
+lines.markeredgewidth: 0.8  # Thinner marker edges
+lines.markeredgecolor: auto  # Match marker color
+errorbar.capsize: 3  # Smaller error bar caps
+
+# === Color Settings ===
+axes.edgecolor: black  # Black axis edges
+axes.facecolor: white  # White background
+axes.grid: True  # Enable grid by default
+axes.spines.top: True
+axes.spines.right: True
+axes.spines.left: True
+axes.spines.bottom: True
+
+# === Scientific Plotting Settings ===
+axes.formatter.use_mathtext: True  # Use mathtext for scientific notation
+axes.formatter.limits: -3, 3  # Switch to scientific notation outside this range
+axes.formatter.useoffset: False  # Don't use offset notation
+axes.formatter.min_exponent: 0  # Minimum exponent for scientific notation
+
 # === Colormap (Colorblind-Friendly) ===
 image.cmap: viridis  # Better for scientific plots (alternative: 'cividis' or 'tab10')
 
 # === Other Settings ===
-axes.linewidth: 1  # Thin but clear axis lines
+figure.facecolor: white  # White figure background
+figure.edgecolor: white
+axes.linewidth: 0.8  # Thin but clear axis lines
+patch.linewidth: 0.5  # Thin patch edges
+patch.facecolor: C0  # Default patch color
+patch.edgecolor: black
+patch.antialiased: True

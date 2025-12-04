@@ -50,6 +50,7 @@ class Sensor():
 
             self.system = sensorCoordinates["SYSTEM"].values[0]
             self.name = sensorCoordinates["NAME"].values[0]
+            self.board = sensorCoordinates["BOARD"].values[0]
             self.wcable = sensorCoordinates["W-CABLE"].values[0]
             self.flange = sensorCoordinates["FLANGE"].values[0]
         return self
