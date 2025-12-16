@@ -38,10 +38,14 @@ class Channel():
     def __init__(self, dataset, name):
         self.dataset = dataset
         self.name = name
+        try:
+            self.channelNumber = int(name.split("TE")[-1])
+        except:
+            self.channelNumber = name
         if self.name not in self.dataset.data.columns:
             self.data = None
             self.err = None
-            print(f"ERROR: Channel ({self.name}) not found")
+            # print(f"ERROR: Channel ({self.name}) not found")
         else:
             self.data = self.dataset.data[self.name]
             self.err = self.dataset.err[self.name]

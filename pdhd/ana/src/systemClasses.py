@@ -69,6 +69,8 @@ class System():
         if len(self.sensors)>0:
             system_name = self.name if self.name is not None else "Custom"
             for index, value in tqdm(self.sensors.items(), desc=f"Calibrating {system_name} Sensors - Calibration Name: {calibName}", unit="sensor"):
+                if value.data is None:
+                    continue
                 self.sensors[index] = value.tempCalibration(calibName=calibName, ref=ref)
         return self
 
@@ -81,6 +83,8 @@ class System():
         if tini is not None and tend is not None and len(self.sensors) > 0:
             profiles_data = []
             for index, sensor in self.sensors.items():
+                if (sensor.data is None):
+                    continue
                 temperature = sensor.data.loc[(sensor.data.index >= tini) & (sensor.data.index <= tend)]
                 if not temperature.empty:
                     profiles_data.append({
@@ -89,7 +93,7 @@ class System():
                         "Z": sensor.Z,
                         "name": sensor.name,
                         "temp": temperature.mean(),
-                        "err": temperature.sem()
+                        "err": temperature.std()
                     })
             self.profiles = pd.DataFrame.from_records(profiles_data)
             self.is_single_profile = True
@@ -115,7 +119,7 @@ class System():
                             "Y": sensor.Y,
                             "Z": sensor.Z,
                             "temp": temperature.mean(),
-                            "err": temperature.sem()
+                            "err": temperature.std()
                         })
 
                 profiles_data[t] = pd.DataFrame.from_records(profiles_data[t])

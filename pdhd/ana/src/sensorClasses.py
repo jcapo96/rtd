@@ -7,6 +7,7 @@ elif home_directory == "afs":
 from src import baseClasses, muxClasses
 import pandas as pd
 import pickle, json
+import numpy as np
 
 
 class Sensor():
@@ -53,15 +54,19 @@ class Sensor():
             self.board = sensorCoordinates["BOARD"].values[0]
             self.wcable = sensorCoordinates["W-CABLE"].values[0]
             self.flange = sensorCoordinates["FLANGE"].values[0]
+
         return self
 
     def _data(self):
         self.data = pd.Series()
         self.err = pd.Series()
+        self.channel = {}
         for index, info in self.info.items():
             config = info["configInfo"]
             sensor = info["sensorInfo"]
+            # print(f"Creating Channel {sensor['SC-ID'].values[0]} for SensorID {self.id}")
             channel = baseClasses.Channel(self.dataset, sensor["SC-ID"].values[0])
+            self.channel[index] = {"config":config, "channelNumber": channel.channelNumber}
             if channel.data is None or channel.err is None:
                 continue
             else:
@@ -188,6 +193,12 @@ class Sensor():
             sensor = info["sensorInfo"]
             boardNumber = sensor["BOARD"].values[0]
             channel = baseClasses.Channel(self.dataset, sensor["SC-ID"].values[0])
+            if boardNumber is None:
+                self.is_mux_equalized[index] = {"config":config, "is_corrected":False}
+                continue
+            if np.isnan(boardNumber):
+                self.is_mux_equalized[index] = {"config":config, "is_corrected":False}
+                continue
             mux = muxClasses.MUX(self.dataset, int(boardNumber))
             if channel.data is None:
                 self.is_mux_equalized[index] = {"config":config, "is_corrected":False}

@@ -1,6 +1,6 @@
 # === Figure Settings ===
 figure.figsize: 6.5, 4.5  # Standard for publications (fits IEEE/Nature two-column format)
-figure.dpi: 300  # High resolution for publication quality
+figure.dpi: 100  # High resolution for publication quality
 savefig.dpi: 300  # High resolution when saving
 savefig.bbox: tight  # Remove extra white space when saving
 savefig.format: pdf  # Vector format for publication quality
